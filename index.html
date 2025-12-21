@@ -5,22 +5,45 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
   <style>
-    #map { height: 100vh; }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
 
 <div id="map"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-  var map = L.map('map').setView([44.0, -89.0], 10);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-  }).addTo(map);
+<script>
+  // Create the map
+  var map = L.map('map').setView([44.18080, -89.48536], 16);
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: 'Tiles &copy; Esri'
+}).addTo(map);
+
+
+fetch('property.geojson')
+  .then(r => r.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: {
+        color: 'yellow',
+        weight: 3
+      }
+    }).addTo(map);
+  });
+
+  
 </script>
 
 </body>
