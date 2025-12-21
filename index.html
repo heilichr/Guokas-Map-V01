@@ -32,7 +32,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 }).addTo(map);
 
 
-fetch('property.geojson')
+fetch('trails.geojson')
   .then(r => r.json())
   .then(data => {
     L.geoJSON(data, {
