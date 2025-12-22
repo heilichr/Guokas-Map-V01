@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>ESRI World Imagery with Trails</title>
+<title>ESRI World Imagery with Trails and Stands</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Leaflet CSS -->
@@ -34,17 +34,17 @@
     { attribution: 'Tiles © Esri' }
   ).addTo(map);
 
-  // Layer for Trails
+  // --------------------
+  // Trails Layer
+  // --------------------
   const trailsLayer = L.layerGroup().addTo(map);
 
-  // Style for trails
   const trailStyle = {
     color: "#ff0000",
     weight: 4,
     opacity: 1
   };
 
-  // Load Trails.geojson
   fetch('Trails.geojson')
     .then(res => res.json())
     .then(data => {
@@ -53,10 +53,36 @@
     })
     .catch(err => console.error("Error loading Trails.geojson:", err));
 
-  // Layer control
+  // --------------------
+  // Stands Points Layer
+  // --------------------
+  const standsLayer = L.layerGroup().addTo(map);
+
+  const standStyle = {
+    radius: 6,
+    fillColor: "#00ff00",
+    color: "#000000",
+    weight: 1,
+    fillOpacity: 0.9
+  };
+
+  fetch('Stands.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        pointToLayer: function(feature, latlng) {
+          return L.circleMarker(latlng, standStyle);
+        }
+      }).addTo(standsLayer);
+    })
+    .catch(err => console.error("Error loading Stands.geojson:", err));
+
+  // --------------------
+  // Layer Control
+  // --------------------
   L.control.layers(
     { "ESRI World Imagery": esriImagery },
-    { "Trails": trailsLayer },
+    { "Trails": trailsLayer, "Stands": standsLayer },
     { collapsed: false }
   ).addTo(map);
 </script>
