@@ -1,93 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Simple Leaflet Map</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <title>Trails Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
 
-  <style>
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-  </style>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
-
 <body>
 
 <div id="map"></div>
 
 <!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// ----------------------------------------------------
-// Create the map
-// ----------------------------------------------------
-var map = L.map('map').setView([44.18080, -89.48536], 16);
+    // Create map
+    const map = L.map('map').setView([0, 0], 2);
 
-// ----------------------------------------------------
-// ESRI Aerial Basemap
-// ----------------------------------------------------
-L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  { maxZoom: 19, attribution: 'Tiles © Esri' }
-).addTo(map);
+    // ESRI World Imagery basemap
+    const esriWorldImagery = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+            attribution: 'Tiles © Esri'
+        }
+    ).addTo(map);
 
-// ----------------------------------------------------
-// Safe style function (reads from GeoJSON properties)
-// ----------------------------------------------------
-function styleFromProperties(feature) {
-  var p = feature.properties || {};
+    // Basemap layer object
+    const baseMaps = {
+        "ESRI World Imagery": esriWorldImagery
+    };
 
-  return {
-    color: p.stroke || '#000000',
-    weight: p['stroke-width'] || 2,
-    opacity: p['stroke-opacity'] || 1,
-    fillColor: p.fill || '#000000',
-    fillOpacity: p['fill-opacity'] || 0
-  };
-}
+    // Trails GeoJSON layer
+    const trailsLayer = L.geoJSON(null, {
+        style: function (feature) {
+            return {
+                color: feature.properties.color || feature.properties.stroke || "#3388ff",
+                weight: feature.properties.weight || feature.properties["stroke-width"] || 3,
+                opacity: feature.properties.opacity || feature.properties["stroke-opacity"] || 1
+            };
+        }
+    });
 
-// ----------------------------------------------------
-// Load TRAILS (auto-zoom layer)
-// ----------------------------------------------------
-fetch('trails.geojson')
-  .then(r => r.json())
-  .then(data => {
-    var trails = L.geoJSON(data, { style: styleFromProperties }).addTo(map);
-    map.fitBounds(trails.getBounds());
-  });
+    // Load GeoJSON
+    fetch('Trails.geojson')
+        .then(response => response.json())
+        .then(data => {
+            trailsLayer.addData(data);
+            map.fitBounds(trailsLayer.getBounds());
+        })
+        .catch(error => console.error('Error loading Trails.geojson:', error));
 
-// ----------------------------------------------------
-// Load CONTOURS 3
-// ----------------------------------------------------
-fetch('contours3.geojson')
-  .then(r => r.json())
-  .then(data => {
-    L.geoJSON(data, { style: styleFromProperties }).addTo(map);
-  });
+    // Overlay layer object
+    const overlayMaps = {
+        "Trails": trailsLayer
+    };
 
-// ----------------------------------------------------
-// Load CONTOURS 1100
-// ----------------------------------------------------
-fetch('contours1100.geojson')
-  .then(r => r.json())
-  .then(data => {
-    L.geoJSON(data, { style: styleFromProperties }).addTo(map);
-  });
+    // Add trails to map by default
+    trailsLayer.addTo(map);
 
-// ----------------------------------------------------
-// Load WATER CONTOURS
-// ----------------------------------------------------
-fetch('contourswater.geojson')
-  .then(r => r.json())
-  .then(data => {
-    L.geoJSON(data, { style: styleFromProperties }).addTo(map);
-  });
+    // Layer control
+    L.control.layers(baseMaps, overlayMaps, {
+        collapsed: false
+    }).addTo(map);
 
 </script>
 
