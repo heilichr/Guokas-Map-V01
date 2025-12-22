@@ -39,14 +39,10 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.3.0/dist/leaflet-measure.min.js"></script>
 
 <script>
-// ----------------------------------------------------
 // Create the map
-// ----------------------------------------------------
 var map = L.map('map').setView([44.18080, -89.48536], 16);
 
-// ----------------------------------------------------
 // Basemaps
-// ----------------------------------------------------
 var esriImagery = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   { maxZoom: 19, attribution: 'Tiles © Esri' }
@@ -68,27 +64,23 @@ var baseMaps = {
   "Topo Map": topo
 };
 
-// ----------------------------------------------------
 // Overlay layer containers
-// ----------------------------------------------------
 var trailsLayer, propertyLayer, roadsLayer, pointsLayer;
 
-// ----------------------------------------------------
-// Style function (reads from GeoJSON properties)
-// ----------------------------------------------------
+// Safe style function
 function styleFromProperties(feature) {
+  var props = feature.properties || {};
+
   return {
-    color: feature.properties.stroke || '#000000',
-    weight: feature.properties['stroke-width'] || 2,
-    opacity: feature.properties['stroke-opacity'] || 1,
-    fillColor: feature.properties.fill || '#000000',
-    fillOpacity: feature.properties['fill-opacity'] || 0
+    color: props.stroke || '#0000FF',
+    weight: props['stroke-width'] || 2,
+    opacity: props['stroke-opacity'] || 1,
+    fillColor: props.fill || '#0000FF',
+    fillOpacity: props['fill-opacity'] || 0
   };
 }
 
-// ----------------------------------------------------
-// Load TRAILS (auto-zoom layer)
-// ----------------------------------------------------
+// TRAILS (auto-zoom)
 fetch('trails.geojson')
   .then(r => r.json())
   .then(data => {
@@ -96,46 +88,40 @@ fetch('trails.geojson')
     map.fitBounds(trailsLayer.getBounds());
   });
 
-// ----------------------------------------------------
-// Load PROPERTY
-// ----------------------------------------------------
+// PROPERTY
 fetch('property.geojson')
   .then(r => r.json())
   .then(data => {
     propertyLayer = L.geoJSON(data, { style: styleFromProperties });
   });
 
-// ----------------------------------------------------
-// Load ROADS
-// ----------------------------------------------------
+// ROADS
 fetch('roads.geojson')
   .then(r => r.json())
   .then(data => {
     roadsLayer = L.geoJSON(data, { style: styleFromProperties });
   });
 
-// ----------------------------------------------------
-// Load POINTS
-// ----------------------------------------------------
+// POINTS
 fetch('points.geojson')
   .then(r => r.json())
   .then(data => {
     pointsLayer = L.geoJSON(data, {
       pointToLayer: function(feature, latlng) {
+        var props = feature.properties || {};
+
         return L.circleMarker(latlng, {
-          radius: feature.properties['marker-size'] || 6,
-          color: feature.properties.stroke || '#000000',
-          fillColor: feature.properties.fill || '#000000',
-          fillOpacity: feature.properties['fill-opacity'] || 1,
-          weight: feature.properties['stroke-width'] || 2
+          radius: props['marker-size'] || 6,
+          color: props.stroke || '#000000',
+          fillColor: props.fill || '#000000',
+          fillOpacity: props['fill-opacity'] || 1,
+          weight: props['stroke-width'] || 2
         });
       }
     });
   });
 
-// ----------------------------------------------------
-// Layer Toggle Control
-// ----------------------------------------------------
+// Layer toggle
 var overlays = {
   "Trails": trailsLayer,
   "Property Boundary": propertyLayer,
@@ -145,25 +131,21 @@ var overlays = {
 
 L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
 
-// ----------------------------------------------------
-// Scale Bar
-// ----------------------------------------------------
+// Scale bar
 L.control.scale({ position: 'bottomleft', imperial: true, metric: true }).addTo(map);
 
-// ----------------------------------------------------
-// Measurement Tool
-// ----------------------------------------------------
-L.control.measure({
-  position: 'topleft',
-  primaryLengthUnit: 'feet',
-  secondaryLengthUnit: 'miles',
-  primaryAreaUnit: 'acres',
-  secondaryAreaUnit: 'sqmeters'
-}).addTo(map);
+// Measurement tool
+if (L.control.measure) {
+  L.control.measure({
+    position: 'topleft',
+    primaryLengthUnit: 'feet',
+    secondaryLengthUnit: 'miles',
+    primaryAreaUnit: 'acres',
+    secondaryAreaUnit: 'sqmeters'
+  }).addTo(map);
+}
 
-// ----------------------------------------------------
-// North Arrow
-// ----------------------------------------------------
+// North arrow
 var north = L.control({ position: "topright" });
 north.onAdd = function(map) {
   var div = L.DomUtil.create("div", "leaflet-control-north");
