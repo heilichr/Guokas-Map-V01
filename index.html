@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Trails Map</title>
+    <title>Trails and Stands Map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Leaflet CSS -->
@@ -20,6 +20,15 @@
             height: 100%;
             width: 100%;
         }
+
+        /* LABEL STYLE (EDIT HERE) */
+        .stand-label {
+            font-size: 14px;      /* text size */
+            color: #ffffff;       /* text color */
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -30,40 +39,98 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Initialize map
+    // ---------------------------
+    // MAP SETUP
+    // ---------------------------
     const map = L.map('map').setView([0, 0], 2);
 
-    // ESRI World Imagery basemap
     const esriImagery = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         { attribution: 'Tiles © Esri' }
     ).addTo(map);
 
-    // Trails layer with fixed style (EDIT HERE)
+    // ---------------------------
+    // STYLE SETTINGS (EDIT THESE)
+    // ---------------------------
+
+    // Trails (lines)
+    const trailStyle = {
+        color: "#ff0000",
+        weight: 4,
+        opacity: 1
+    };
+
+    // Stands (points)
+    const standStyle = {
+        radius: 6,
+        fillColor: "#00ff00",
+        color: "#000000",
+        weight: 1,
+        fillOpacity: 0.9
+    };
+
+    // ATTRIBUTE FIELD USED FOR LABEL TEXT
+    const labelField = "name"; // <-- change to your field name
+
+    // ---------------------------
+    // LAYERS
+    // ---------------------------
+
+    // Trails layer
     const trailsLayer = L.geoJSON(null, {
-        style: {
-            color: "#a3783e",   // line color
-            weight: 3,          // line weight
-            opacity: 1
-        }
+        style: trailStyle
     });
 
-    // Fetch GeoJSON
     fetch('Trails.geojson')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             trailsLayer.addData(data);
             map.fitBounds(trailsLayer.getBounds());
-        })
-        .catch(err => console.error(err));
+        });
 
     trailsLayer.addTo(map);
 
-    // Layer control
+    // Stands layer with labels
+    const standsLayer = L.geoJSON(null, {
+        pointToLayer: function (feature, latlng) {
+
+            // Point marker
+            const marker = L.circleMarker(latlng, standStyle);
+
+            // Text label
+            const label = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'stand-label',
+                    html: feature.properties[labelField] || '',
+                    iconSize: [0, 0]
+                }),
+                interactive: false
+            });
+
+            // Group point + label together
+            return L.layerGroup([marker, label]);
+        }
+    });
+
+    fetch('Stands.geojson')
+        .then(res => res.json())
+        .then(data => {
+            standsLayer.addData(data);
+        });
+
+    standsLayer.addTo(map);
+
+    // ---------------------------
+    // LAYER CONTROL
+    // ---------------------------
     L.control.layers(
         { "ESRI World Imagery": esriImagery },
-        { "Trails": trailsLayer }
+        {
+            "Trails": trailsLayer,
+            "Stands": standsLayer
+        }
     ).addTo(map);
+
 </script>
 
 </body>
