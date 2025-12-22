@@ -40,7 +40,7 @@ html, body {
 // --------------------
 // MAP SETUP
 // --------------------
-const map = L.map('map');
+const map = L.map('map'); // Do NOT set view yet; will fit bounds later
 
 const esriImagery = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -62,8 +62,8 @@ const standStyle = {
 
 // Trails (lines)
 const trailStyle = {
-    color: "#ff0000",     // trail color
-    weight: 4,            // trail width
+    color: "#ff0000",     // line color
+    weight: 4,            // line width
     opacity: 1
 };
 
@@ -106,8 +106,14 @@ fetch('Stands.geojson')
             }
         });
 
-        // 🔍 Zoom to STANDS on initial load
-        map.fitBounds(standsGeoJSON.getBounds());
+        // Add layers to map
+        standsPoints.addTo(map);
+        standsLabels.addTo(map);
+
+        // 🔍 Zoom to bounds of the Stands layer
+        if (standsGeoJSON.getLayers().length > 0) {
+            map.fitBounds(standsGeoJSON.getBounds(), { padding: [20, 20] });
+        }
     });
 
 // --------------------
@@ -120,12 +126,8 @@ fetch('Trails.geojson')
             style: trailStyle
         });
         trailsLayer.addLayer(trailsGeoJSON);
+        trailsLayer.addTo(map);
     });
-
-// Add layers by default
-trailsLayer.addTo(map);
-standsPoints.addTo(map);
-standsLabels.addTo(map);
 
 // --------------------
 // LAYER CONTROL
