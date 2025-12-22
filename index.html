@@ -17,8 +17,8 @@
             margin: 0;
         }
         #map {
-            width: 100%;
             height: 100%;
+            width: 100%;
         }
     </style>
 </head>
@@ -30,55 +30,40 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Create map
+    // Initialize map
     const map = L.map('map').setView([0, 0], 2);
 
     // ESRI World Imagery basemap
-    const esriWorldImagery = L.tileLayer(
+    const esriImagery = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        {
-            attribution: 'Tiles © Esri'
-        }
+        { attribution: 'Tiles © Esri' }
     ).addTo(map);
 
-    // Basemap layer object
-    const baseMaps = {
-        "ESRI World Imagery": esriWorldImagery
-    };
-
-    // Trails GeoJSON layer
+    // Trails layer with fixed style (EDIT HERE)
     const trailsLayer = L.geoJSON(null, {
-        style: function (feature) {
-            return {
-                color: feature.properties.color || feature.properties.stroke || "#a3783e",
-                weight: feature.properties.weight || feature.properties["stroke-width"] || 3,
-                opacity: feature.properties.opacity || feature.properties["stroke-opacity"] || 1
-            };
+        style: {
+            color: "#ff0000",   // line color
+            weight: 4,          // line weight
+            opacity: 1
         }
     });
 
-    // Load GeoJSON
+    // Fetch GeoJSON
     fetch('Trails.geojson')
         .then(response => response.json())
         .then(data => {
             trailsLayer.addData(data);
             map.fitBounds(trailsLayer.getBounds());
         })
-        .catch(error => console.error('Error loading Trails.geojson:', error));
+        .catch(err => console.error(err));
 
-    // Overlay layer object
-    const overlayMaps = {
-        "Trails": trailsLayer
-    };
-
-    // Add trails to map by default
     trailsLayer.addTo(map);
 
     // Layer control
-    L.control.layers(baseMaps, overlayMaps, {
-        collapsed: false
-    }).addTo(map);
-
+    L.control.layers(
+        { "ESRI World Imagery": esriImagery },
+        { "Trails": trailsLayer }
+    ).addTo(map);
 </script>
 
 </body>
