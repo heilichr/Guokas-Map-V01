@@ -37,7 +37,7 @@ fetch('Trails.geojson')
   .then(data => {
     L.geoJSON(data, {
       style: {
-        color: 'brown',
+        color: 'medium brown',
         weight: 3
       }
     }).addTo(map);
@@ -59,8 +59,8 @@ fetch('Trails.geojson')
   .then(data => {
     L.geoJSON(data, {
       style: {
-        color: 'orange',
-        weight: 1
+        color: 'gray',
+        weight: 2
       }
     }).addTo(map);
   });
