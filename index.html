@@ -20,15 +20,6 @@
             height: 100%;
             width: 100%;
         }
-
-        /* LABEL STYLE (EDIT HERE) */
-        .stand-label {
-            font-size: 14px;      /* text size */
-            color: #ffffff;       /* text color */
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-            white-space: nowrap;
-        }
     </style>
 </head>
 <body>
@@ -55,22 +46,19 @@
 
     // Trails (lines)
     const trailStyle = {
-        color: "#ff0000",
-        weight: 4,
+        color: "#ff0000", // line color
+        weight: 4,        // line width
         opacity: 1
     };
 
     // Stands (points)
     const standStyle = {
-        radius: 6,
-        fillColor: "#00ff00",
-        color: "#000000",
-        weight: 1,
+        radius: 6,        // point size
+        fillColor: "#00ff00", // point color
+        color: "#000000", // outline color
+        weight: 1,        // outline width
         fillOpacity: 0.9
     };
-
-    // ATTRIBUTE FIELD USED FOR LABEL TEXT
-    const labelField = "name"; // <-- change to your field name
 
     // ---------------------------
     // LAYERS
@@ -86,29 +74,15 @@
         .then(data => {
             trailsLayer.addData(data);
             map.fitBounds(trailsLayer.getBounds());
-        });
+        })
+        .catch(err => console.error(err));
 
     trailsLayer.addTo(map);
 
-    // Stands layer with labels
+    // Stands layer (points)
     const standsLayer = L.geoJSON(null, {
         pointToLayer: function (feature, latlng) {
-
-            // Point marker
-            const marker = L.circleMarker(latlng, standStyle);
-
-            // Text label
-            const label = L.marker(latlng, {
-                icon: L.divIcon({
-                    className: 'stand-label',
-                    html: feature.properties[labelField] || '',
-                    iconSize: [0, 0]
-                }),
-                interactive: false
-            });
-
-            // Group point + label together
-            return L.layerGroup([marker, label]);
+            return L.circleMarker(latlng, standStyle);
         }
     });
 
@@ -116,7 +90,8 @@
         .then(res => res.json())
         .then(data => {
             standsLayer.addData(data);
-        });
+        })
+        .catch(err => console.error(err));
 
     standsLayer.addTo(map);
 
