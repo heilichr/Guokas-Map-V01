@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>ESRI World Imagery Map</title>
+<title>ESRI World Imagery with Trails</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-  /* Full-screen map */
   html, body {
       height: 100%;
       margin: 0;
@@ -22,19 +21,43 @@
 </head>
 <body>
 
-<!-- Map container -->
 <div id="map"></div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  // Initialize map centered on specific coordinates with zoom level 12
+  // Initialize map
   const map = L.map('map').setView([44.18125, -89.48712], 12);
 
-  // Add ESRI World Imagery tile layer
-  L.tileLayer(
+  // Base map
+  const esriImagery = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     { attribution: 'Tiles © Esri' }
+  ).addTo(map);
+
+  // Layer for Trails
+  const trailsLayer = L.layerGroup().addTo(map);
+
+  // Style for trails
+  const trailStyle = {
+    color: "#ff0000",
+    weight: 4,
+    opacity: 1
+  };
+
+  // Load Trails.geojson
+  fetch('Trails.geojson')
+    .then(res => res.json())
+    .then(data => {
+      const geojson = L.geoJSON(data, { style: trailStyle });
+      trailsLayer.addLayer(geojson);
+    })
+    .catch(err => console.error("Error loading Trails.geojson:", err));
+
+  // Layer control
+  L.control.layers(
+    { "ESRI World Imagery": esriImagery },
+    { "Trails": trailsLayer },
+    { collapsed: false }
   ).addTo(map);
 </script>
 
