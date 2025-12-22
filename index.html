@@ -71,9 +71,9 @@
     if (feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon") {
       // Water bodies
       return {
-        color: "#4a90e2",
+        color: "#5891a4",
         weight: 1,
-        fillColor: "#4a90e2",
+        fillColor: "#4e9be8",
         fillOpacity: 0.5
       };
     }
@@ -87,6 +87,26 @@
       }).addTo(contoursWaterLayer);
     })
     .catch(err => console.error("Error loading contourswater.geojson:", err));
+
+  // --------------------
+  // 1100' Contours Layer
+  // --------------------
+  const contours1100Layer = L.layerGroup().addTo(map);
+
+  const contour1100Style = {
+    color: "#c1b0b9",   
+    weight: 2,
+    opacity: 1
+  };
+
+  fetch('contours1100.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: contour1100Style
+      }).addTo(contours1100Layer);
+    })
+    .catch(err => console.error("Error loading contours1100.geojson:", err));
 
 
 
@@ -118,10 +138,16 @@
   // Layer Control
   // --------------------
   L.control.layers(
-    { "ESRI World Imagery": esriImagery },
-    { "Trails": trailsLayer, "Stands": standsLayer },
-    { collapsed: false }
-  ).addTo(map);
+  { "ESRI World Imagery": esriImagery },
+  {
+    "Trails": trailsLayer,
+    "Contours & Water": contoursWaterLayer,
+    "1100' Contours": contours1100Layer,
+    "Stands": standsLayer
+  },
+  { collapsed: false }
+).addTo(map);
+
 </script>
 
 </body>
