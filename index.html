@@ -26,7 +26,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   // Initialize map
-  const map = L.map('map').setView([44.18125, -89.48712], 12);
+  const map = L.map('map').setView([44.18125, -89.48712], 13);
 
   // Base map
   const esriImagery = L.tileLayer(
@@ -40,7 +40,7 @@
   const trailsLayer = L.layerGroup().addTo(map);
 
   const trailStyle = {
-    color: "#ff0000",
+    color: "brown",
     weight: 4,
     opacity: 1
   };
@@ -60,8 +60,8 @@
 
   const standStyle = {
     radius: 6,
-    fillColor: "#00ff00",
-    color: "#000000",
+    fillColor: "Yellow",
+    color: " black",
     weight: 1,
     fillOpacity: 0.9
   };
