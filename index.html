@@ -5,10 +5,7 @@
 <title>Stands and Trails Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
 html, body {
@@ -20,7 +17,7 @@ html, body {
     width: 100%;
 }
 
-/* ===== LABEL STYLE (EDIT HERE) ===== */
+/* LABEL STYLE */
 .stand-label {
     font-size: 14px;      /* label size */
     color: #ffffff;       /* label color */
@@ -35,111 +32,100 @@ html, body {
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 // --------------------
 // MAP SETUP
 // --------------------
-const map = L.map('map'); // Do NOT set view yet; will fit bounds later
+const map = L.map('map'); // no initial setView, we will fit bounds
 
 const esriImagery = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { attribution: 'Tiles © Esri' }
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution: 'Tiles © Esri' }
 ).addTo(map);
 
 // --------------------
-// EDITABLE STYLES
+// STYLES
 // --------------------
-
-// Stands (points)
 const standStyle = {
-    radius: 6,            // point size
-    fillColor: "#00ff00", // point color
-    color: "#000000",
-    weight: 1,
-    fillOpacity: 0.9
+  radius: 6,
+  fillColor: "#00ff00",
+  color: "#000000",
+  weight: 1,
+  fillOpacity: 0.9
 };
 
-// Trails (lines)
 const trailStyle = {
-    color: "#ff0000",     // line color
-    weight: 4,            // line width
-    opacity: 1
+  color: "#ff0000",
+  weight: 4,
+  opacity: 1
 };
 
-// Attribute used for labels
-const labelField = "Name"; // MUST match field in Stands.geojson
+const labelField = "Name"; // MUST match the field in Stands.geojson
 
 // --------------------
 // LAYERS
 // --------------------
-const standsPoints = L.layerGroup();
-const standsLabels = L.layerGroup();
-const trailsLayer  = L.layerGroup();
+const standsPoints = L.layerGroup().addTo(map);
+const standsLabels = L.layerGroup().addTo(map);
+const trailsLayer  = L.layerGroup().addTo(map);
 
 // --------------------
-// LOAD STANDS
+// LOAD STANDS GEOJSON
 // --------------------
 fetch('Stands.geojson')
-    .then(res => res.json())
-    .then(data => {
+  .then(res => res.json())
+  .then(data => {
+    const geojson = L.geoJSON(data, {
+      pointToLayer: function(feature, latlng) {
+        // Point
+        const point = L.circleMarker(latlng, standStyle);
+        standsPoints.addLayer(point);
 
-        const standsGeoJSON = L.geoJSON(data, {
-            pointToLayer: function (feature, latlng) {
-
-                // Point
-                const point = L.circleMarker(latlng, standStyle);
-                standsPoints.addLayer(point);
-
-                // Label
-                const label = L.marker(latlng, {
-                    icon: L.divIcon({
-                        className: 'stand-label',
-                        html: feature.properties[labelField] || '',
-                        iconSize: [0, 0]
-                    }),
-                    interactive: false
-                });
-                standsLabels.addLayer(label);
-
-                return null;
-            }
+        // Label
+        const label = L.marker(latlng, {
+          icon: L.divIcon({
+            className: 'stand-label',
+            html: feature.properties[labelField] || '',
+            iconSize: [0, 0]
+          }),
+          interactive: false
         });
+        standsLabels.addLayer(label);
 
-        // Add layers to map
-        standsPoints.addTo(map);
-        standsLabels.addTo(map);
-
-        // 🔍 Zoom to bounds of the Stands layer
-        if (standsGeoJSON.getLayers().length > 0) {
-            map.fitBounds(standsGeoJSON.getBounds(), { padding: [20, 20] });
-        }
+        return null;
+      }
     });
 
+    // Zoom to Stands extent
+    const bounds = geojson.getBounds();
+    if (bounds.isValid && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+  })
+  .catch(err => console.error("Failed to load Stands.geojson:", err));
+
 // --------------------
-// LOAD TRAILS
+// LOAD TRAILS GEOJSON
 // --------------------
 fetch('Trails.geojson')
-    .then(res => res.json())
-    .then(data => {
-        const trailsGeoJSON = L.geoJSON(data, {
-            style: trailStyle
-        });
-        trailsLayer.addLayer(trailsGeoJSON);
-        trailsLayer.addTo(map);
-    });
+  .then(res => res.json())
+  .then(data => {
+    const geojson = L.geoJSON(data, { style: trailStyle });
+    trailsLayer.addLayer(geojson);
+  })
+  .catch(err => console.error("Failed to load Trails.geojson:", err));
 
 // --------------------
 // LAYER CONTROL
 // --------------------
 L.control.layers(
-    { "ESRI World Imagery": esriImagery },
-    {
-        "Trails": trailsLayer,
-        "Stands (Points)": standsPoints,
-        "Stands (Labels)": standsLabels
-    },
-    { collapsed: false }
+  { "ESRI World Imagery": esriImagery },
+  {
+    "Trails": trailsLayer,
+    "Stands (Points)": standsPoints,
+    "Stands (Labels)": standsLabels
+  },
+  { collapsed: false }
 ).addTo(map);
 
 </script>
