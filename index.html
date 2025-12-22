@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Stands Map</title>
+<title>Stands and Trails Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link
@@ -40,7 +40,7 @@ html, body {
 // --------------------
 // MAP SETUP
 // --------------------
-const map = L.map('map').setView([0, 0], 2);
+const map = L.map('map');
 
 const esriImagery = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -51,30 +51,40 @@ const esriImagery = L.tileLayer(
 // EDITABLE STYLES
 // --------------------
 
-// Point appearance
+// Stands (points)
 const standStyle = {
-    radius: 6,           // point size
-    fillColor: "#00ff00",// point color
-    color: "#000000",    // outline color
+    radius: 6,            // point size
+    fillColor: "#00ff00", // point color
+    color: "#000000",
     weight: 1,
     fillOpacity: 0.9
 };
 
+// Trails (lines)
+const trailStyle = {
+    color: "#ff0000",     // trail color
+    weight: 4,            // trail width
+    opacity: 1
+};
+
 // Attribute used for labels
-const labelField = "Name"; // Google Earth placemark name
+const labelField = "Name"; // MUST match field in Stands.geojson
 
 // --------------------
 // LAYERS
 // --------------------
 const standsPoints = L.layerGroup();
 const standsLabels = L.layerGroup();
+const trailsLayer  = L.layerGroup();
 
-// Load GeoJSON
+// --------------------
+// LOAD STANDS
+// --------------------
 fetch('Stands.geojson')
     .then(res => res.json())
     .then(data => {
 
-        const geojson = L.geoJSON(data, {
+        const standsGeoJSON = L.geoJSON(data, {
             pointToLayer: function (feature, latlng) {
 
                 // Point
@@ -96,10 +106,24 @@ fetch('Stands.geojson')
             }
         });
 
-        map.fitBounds(geojson.getBounds());
+        // 🔍 Zoom to STANDS on initial load
+        map.fitBounds(standsGeoJSON.getBounds());
+    });
+
+// --------------------
+// LOAD TRAILS
+// --------------------
+fetch('Trails.geojson')
+    .then(res => res.json())
+    .then(data => {
+        const trailsGeoJSON = L.geoJSON(data, {
+            style: trailStyle
+        });
+        trailsLayer.addLayer(trailsGeoJSON);
     });
 
 // Add layers by default
+trailsLayer.addTo(map);
 standsPoints.addTo(map);
 standsLabels.addTo(map);
 
@@ -109,6 +133,7 @@ standsLabels.addTo(map);
 L.control.layers(
     { "ESRI World Imagery": esriImagery },
     {
+        "Trails": trailsLayer,
         "Stands (Points)": standsPoints,
         "Stands (Labels)": standsLabels
     },
