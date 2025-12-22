@@ -49,12 +49,22 @@ fetch('Trails.geojson')
     L.geoJSON(data, {
       style: {
         color: 'gray',
-        weight: 2
+        weight: 3
       }
     }).addTo(map);
   });
 
- 
+ fetch('contours1100.geojson')
+  .then(r => r.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: {
+        color: 'orange',
+        weight: 3
+      }
+    }).addTo(map);
+  });
+
 </script>
 
 </body>
