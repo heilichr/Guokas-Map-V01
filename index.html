@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>ESRI World Imagery with Trails and Stands</title>
+<title>ESRI World Imagery with Trails, Stands, Contours, and Parcels</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Leaflet CSS -->
@@ -28,7 +28,7 @@
   // ====================
   // Initialize Map
   // ====================
-  const map = L.map('map').setView([44.18125, -89.48712], 16);
+  const map = L.map('map').setView([44.18125, -89.48712], 10);
 
   // ====================
   // Base Map
@@ -51,16 +51,16 @@
 
   // Contours & Water
   const contoursWaterStyle = {
-    color: "#53c3f7",
+    color: "#5891a4",
     weight: 1,
-    opacity: .8,
+    opacity: 1,
     fillColor: "#4e9be8",
     fillOpacity: 0.4
   };
 
   // 1100' Contours
   const contours1100Style = {
-    color: "#8f8f8f",
+    color: "#c1b0b9",
     weight: 1,
     opacity: 1
   };
@@ -81,6 +81,15 @@
     fillOpacity: 0.9
   };
 
+  // Parcels
+  const parcelsStyle = {
+    color: "#00ff00",     // example line color
+    weight: 1,
+    opacity: 0.8,
+    fillColor: "#00ff00", // optional fill
+    fillOpacity: 0.1
+  };
+
   // ====================
   // Trails Layer
   // ====================
@@ -89,8 +98,7 @@
   fetch('Trails.geojson')
     .then(res => res.json())
     .then(data => {
-      L.geoJSON(data, { style: trailStyle })
-        .addTo(trailsLayer);
+      L.geoJSON(data, { style: trailStyle }).addTo(trailsLayer);
     })
     .catch(err => console.error("Error loading Trails.geojson:", err));
 
@@ -102,8 +110,7 @@
   fetch('contourswater.geojson')
     .then(res => res.json())
     .then(data => {
-      L.geoJSON(data, { style: contoursWaterStyle })
-        .addTo(contoursWaterLayer);
+      L.geoJSON(data, { style: contoursWaterStyle }).addTo(contoursWaterLayer);
     })
     .catch(err => console.error("Error loading contourswater.geojson:", err));
 
@@ -115,8 +122,7 @@
   fetch('contours1100.geojson')
     .then(res => res.json())
     .then(data => {
-      L.geoJSON(data, { style: contours1100Style })
-        .addTo(contours1100Layer);
+      L.geoJSON(data, { style: contours1100Style }).addTo(contours1100Layer);
     })
     .catch(err => console.error("Error loading contours1100.geojson:", err));
 
@@ -128,8 +134,7 @@
   fetch('contours3.geojson')
     .then(res => res.json())
     .then(data => {
-      L.geoJSON(data, { style: contours3Style })
-        .addTo(contours3Layer);
+      L.geoJSON(data, { style: contours3Style }).addTo(contours3Layer);
     })
     .catch(err => console.error("Error loading contours3.geojson:", err));
 
@@ -149,7 +154,19 @@
     .catch(err => console.error("Error loading Stands.geojson:", err));
 
   // ====================
-  // Layer Control
+  // Parcels Layer
+  // ====================
+  const parcelsLayer = L.layerGroup().addTo(map);
+
+  fetch('Parcels.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, { style: parcelsStyle }).addTo(parcelsLayer);
+    })
+    .catch(err => console.error("Error loading Parcels.geojson:", err));
+
+  // ====================
+  // Layer Control (collapsed)
   // ====================
   L.control.layers(
     { "ESRI World Imagery": esriImagery },
@@ -158,9 +175,10 @@
       "Contours & Water": contoursWaterLayer,
       "1100' Contours": contours1100Layer,
       "3' Contours": contours3Layer,
-      "Stands": standsLayer
+      "Stands": standsLayer,
+      "Parcels": parcelsLayer
     },
-    { collapsed: false }
+    { collapsed: true }
   ).addTo(map);
 
 </script>
