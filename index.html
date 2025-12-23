@@ -65,6 +65,13 @@
     opacity: 1
   };
 
+  // 3' Contours
+  const contours3Style = {
+    color: "#8f8f8f",
+    weight: 0.75,
+    opacity: 0.9
+  };
+
   // Stands
   const standStyle = {
     radius: 5,
@@ -114,6 +121,19 @@
     .catch(err => console.error("Error loading contours1100.geojson:", err));
 
   // ====================
+  // 3' Contours Layer
+  // ====================
+  const contours3Layer = L.layerGroup().addTo(map);
+
+  fetch('contours3.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, { style: contours3Style })
+        .addTo(contours3Layer);
+    })
+    .catch(err => console.error("Error loading contours3.geojson:", err));
+
+  // ====================
   // Stands Layer
   // ====================
   const standsLayer = L.layerGroup().addTo(map);
@@ -137,6 +157,7 @@
       "Trails": trailsLayer,
       "Contours & Water": contoursWaterLayer,
       "1100' Contours": contours1100Layer,
+      "3' Contours": contours3Layer,
       "Stands": standsLayer
     },
     { collapsed: false }
