@@ -145,17 +145,37 @@
   // ====================
   // Stands Layer
   // ====================
-  const standsLayer = L.layerGroup().addTo(map);
+  <!-- ====================
+     Stands Layer
+     ==================== -->
+const standsLayer = L.layerGroup().addTo(map);
 
-  fetch('Stands.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, {
-        pointToLayer: (feature, latlng) =>
-          L.circleMarker(latlng, standStyle)
-      }).addTo(standsLayer);
-    })
-    .catch(err => console.error("Error loading Stands.geojson:", err));
+fetch('Stands.geojson')
+  .then(res => res.json())
+  .then(data => {
+    L.geoJSON(data, {
+      pointToLayer: (feature, latlng) => {
+        const marker = L.circleMarker(latlng, standStyle);
+
+        // Bind label (always visible)
+        if (feature.properties && feature.properties.name) {
+          marker.bindTooltip(
+            feature.properties.name,
+            {
+              permanent: true,
+              direction: "top",
+              offset: [0, -8],
+              className: "stand-label"
+            }
+          );
+        }
+
+        return marker;
+      }
+    }).addTo(standsLayer);
+  })
+  .catch(err => console.error("Error loading Stands.geojson:", err));
+
 
   // ====================
   // Parcels Layer
