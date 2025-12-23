@@ -86,7 +86,7 @@
   };
 
   // ====================
-  // Trails Layer
+  // Trails
   // ====================
   const trailsLayer = L.layerGroup().addTo(map);
   fetch('Trails.geojson')
@@ -118,36 +118,30 @@
     .then(d => L.geoJSON(d, { style: contours3Style }).addTo(contours3Layer));
 
   // ====================
-  // Stands (WITH LABELS)
+  // Stands (LABELED)
   // ====================
-  // ====================
-// Stands (DEBUG LABEL)
-// ====================
-const standsLayer = L.layerGroup().addTo(map);
+  const standsLayer = L.layerGroup().addTo(map);
+  fetch('Stands.geojson')
+    .then(r => r.json())
+    .then(data => {
+      L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+          const marker = L.circleMarker(latlng, standStyle);
 
-fetch('Stands.geojson')
-  .then(r => r.json())
-  .then(data => {
-    L.geoJSON(data, {
-      pointToLayer: (feature, latlng) => {
-        const marker = L.circleMarker(latlng, standStyle);
+          const label = feature.properties.Name; // ← EXACT FIELD NAME
 
-        // Show ALL properties so we know what exists
-        marker.bindTooltip(
-          JSON.stringify(feature.properties),
-          {
-            permanent: true,
-            direction: "top",
-            offset: [0, -8],
-            className: "stand-label"
+          if (label) {
+            marker.bindTooltip(label, {
+              permanent: true,
+              direction: "top",
+              offset: [0, -8],
+              className: "stand-label"
+            });
           }
-        );
-
-        return marker;
-      }
-    }).addTo(standsLayer);
-  });
-
+          return marker;
+        }
+      }).addTo(standsLayer);
+    });
 
   // ====================
   // Parcels
