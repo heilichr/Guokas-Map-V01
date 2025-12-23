@@ -33,10 +33,14 @@
   // ====================
   // Base Map
   // ====================
-  const esriImagery = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { attribution: 'Tiles © Esri' }
-  ).addTo(map);
+ const esriImagery = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+    attribution: 'Tiles © Esri',
+    maxZoom: 19  // tile layer max zoom (tiles may not exist above this)
+  }
+).addTo(map);
+
 
   // ====================
   // STYLE DEFINITIONS
