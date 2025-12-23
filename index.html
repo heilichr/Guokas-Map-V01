@@ -120,26 +120,34 @@
   // ====================
   // Stands (WITH LABELS)
   // ====================
-  const standsLayer = L.layerGroup().addTo(map);
-  fetch('Stands.geojson')
-    .then(r => r.json())
-    .then(data => {
-      L.geoJSON(data, {
-        pointToLayer: (feature, latlng) => {
-          const marker = L.circleMarker(latlng, standStyle);
+  // ====================
+// Stands (DEBUG LABEL)
+// ====================
+const standsLayer = L.layerGroup().addTo(map);
 
-          if (feature.properties && feature.properties.name) {
-            marker.bindTooltip(feature.properties.name, {
-              permanent: true,
-              direction: "top",
-              offset: [0, -8],
-              className: "stand-label"
-            });
+fetch('Stands.geojson')
+  .then(r => r.json())
+  .then(data => {
+    L.geoJSON(data, {
+      pointToLayer: (feature, latlng) => {
+        const marker = L.circleMarker(latlng, standStyle);
+
+        // Show ALL properties so we know what exists
+        marker.bindTooltip(
+          JSON.stringify(feature.properties),
+          {
+            permanent: true,
+            direction: "top",
+            offset: [0, -8],
+            className: "stand-label"
           }
-          return marker;
-        }
-      }).addTo(standsLayer);
-    });
+        );
+
+        return marker;
+      }
+    }).addTo(standsLayer);
+  });
+
 
   // ====================
   // Parcels
