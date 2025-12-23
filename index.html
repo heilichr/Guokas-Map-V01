@@ -17,6 +17,18 @@
     height: 100%;
     width: 100%;
   }
+
+  /* Stand labels */
+  .stand-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: black;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 1px 4px;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -33,27 +45,20 @@
   // ====================
   // Base Map
   // ====================
- const esriImagery = L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {
-    attribution: 'Tiles © Esri',
-    maxZoom: 19  // tile layer max zoom (tiles may not exist above this)
-  }
-).addTo(map);
-
+  const esriImagery = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution: 'Tiles © Esri',
+      maxZoom: 19
+    }
+  ).addTo(map);
 
   // ====================
   // STYLE DEFINITIONS
   // ====================
 
-  // Trails
-  const trailStyle = {
-    color: "#a3783e",
-    weight: 3,
-    opacity: 1
-  };
+  const trailStyle = { color: "#a3783e", weight: 3, opacity: 1 };
 
-  // Contours & Water
   const contoursWaterStyle = {
     color: "#5891a4",
     weight: 1,
@@ -62,21 +67,9 @@
     fillOpacity: 0.4
   };
 
-  // 1100' Contours
-  const contours1100Style = {
-    color: "#8f8f8f",
-    weight: 1,
-    opacity: 1
-  };
+  const contours1100Style = { color: "#8f8f8f", weight: 1, opacity: 1 };
+  const contours3Style = { color: "#8f8f8f", weight: 0.75, opacity: 0.9 };
 
-  // 3' Contours
-  const contours3Style = {
-    color: "#8f8f8f",
-    weight: 0.75,
-    opacity: 0.9
-  };
-
-  // Stands
   const standStyle = {
     radius: 5,
     fillColor: "yellow",
@@ -85,12 +78,10 @@
     fillOpacity: 0.9
   };
 
-  // Parcels
   const parcelsStyle = {
-    color: "red",     // example line color
+    color: "red",
     weight: 0.7,
     opacity: 0.8,
-    fillColor: "#00ff00", // optional fill
     fillOpacity: 0
   };
 
@@ -98,99 +89,68 @@
   // Trails Layer
   // ====================
   const trailsLayer = L.layerGroup().addTo(map);
-
   fetch('Trails.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, { style: trailStyle }).addTo(trailsLayer);
-    })
-    .catch(err => console.error("Error loading Trails.geojson:", err));
+    .then(r => r.json())
+    .then(d => L.geoJSON(d, { style: trailStyle }).addTo(trailsLayer));
 
   // ====================
-  // Contours & Water Layer
+  // Contours & Water
   // ====================
   const contoursWaterLayer = L.layerGroup().addTo(map);
-
   fetch('contourswater.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, { style: contoursWaterStyle }).addTo(contoursWaterLayer);
-    })
-    .catch(err => console.error("Error loading contourswater.geojson:", err));
+    .then(r => r.json())
+    .then(d => L.geoJSON(d, { style: contoursWaterStyle }).addTo(contoursWaterLayer));
 
   // ====================
-  // 1100' Contours Layer
+  // 1100' Contours
   // ====================
   const contours1100Layer = L.layerGroup().addTo(map);
-
   fetch('contours1100.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, { style: contours1100Style }).addTo(contours1100Layer);
-    })
-    .catch(err => console.error("Error loading contours1100.geojson:", err));
+    .then(r => r.json())
+    .then(d => L.geoJSON(d, { style: contours1100Style }).addTo(contours1100Layer));
 
   // ====================
-  // 3' Contours Layer
+  // 3' Contours
   // ====================
   const contours3Layer = L.layerGroup().addTo(map);
-
   fetch('contours3.geojson')
-    .then(res => res.json())
+    .then(r => r.json())
+    .then(d => L.geoJSON(d, { style: contours3Style }).addTo(contours3Layer));
+
+  // ====================
+  // Stands (WITH LABELS)
+  // ====================
+  const standsLayer = L.layerGroup().addTo(map);
+  fetch('Stands.geojson')
+    .then(r => r.json())
     .then(data => {
-      L.geoJSON(data, { style: contours3Style }).addTo(contours3Layer);
-    })
-    .catch(err => console.error("Error loading contours3.geojson:", err));
+      L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+          const marker = L.circleMarker(latlng, standStyle);
 
-  // ====================
-  // Stands Layer
-  // ====================
-  <!-- ====================
-     Stands Layer
-     ==================== -->
-const standsLayer = L.layerGroup().addTo(map);
-
-fetch('Stands.geojson')
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      pointToLayer: (feature, latlng) => {
-        const marker = L.circleMarker(latlng, standStyle);
-
-        // Bind label (always visible)
-        if (feature.properties && feature.properties.name) {
-          marker.bindTooltip(
-            feature.properties.name,
-            {
+          if (feature.properties && feature.properties.name) {
+            marker.bindTooltip(feature.properties.name, {
               permanent: true,
               direction: "top",
               offset: [0, -8],
               className: "stand-label"
-            }
-          );
+            });
+          }
+          return marker;
         }
-
-        return marker;
-      }
-    }).addTo(standsLayer);
-  })
-  .catch(err => console.error("Error loading Stands.geojson:", err));
-
+      }).addTo(standsLayer);
+    });
 
   // ====================
-  // Parcels Layer
+  // Parcels
   // ====================
   const parcelsLayer = L.layerGroup().addTo(map);
-
   fetch('Parcels.geojson')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, { style: parcelsStyle }).addTo(parcelsLayer);
-    })
-    .catch(err => console.error("Error loading Parcels.geojson:", err));
+    .then(r => r.json())
+    .then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
 
   // ====================
-  // Layer Control (collapsed)
+  // Layer Control
   // ====================
   L.control.layers(
     { "ESRI World Imagery": esriImagery },
@@ -204,7 +164,6 @@ fetch('Stands.geojson')
     },
     { collapsed: true }
   ).addTo(map);
-
 </script>
 
 </body>
