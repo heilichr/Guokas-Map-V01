@@ -2,23 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>ESRI World Imagery with Trails, Stands, Contours, and Parcels</title>
+
+<title>
+  Waushara County 2025 Imagery with Trails, Stands, Contours, and Parcels
+</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<!-- =========================================================
+     LEAFLET CSS
+     ========================================================= -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 
 <style>
+
   html, body {
     height: 100%;
     margin: 0;
   }
+
   #map {
     height: 100%;
     width: 100%;
   }
 
-  /* Stand labels */
+  /* =========================================================
+     STAND LABELS
+     ========================================================= */
+
   .stand-label {
     font-size: 12px;
     font-weight: bold;
@@ -29,143 +43,367 @@
     padding: 1px 4px;
     white-space: nowrap;
   }
+
 </style>
 </head>
+
 <body>
 
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-  // ====================
-  // Initialize Map
-  // ====================
-  const map = L.map('map').setView([44.18125, -89.48712], 16);
 
-  // ====================
-  // Base Map
-  // ====================
+<!-- =========================================================
+     LEAFLET
+     ========================================================= -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<!-- =========================================================
+     ESRI LEAFLET
+     
+     Needed for displaying ArcGIS ImageServer imagery.
+     ========================================================= -->
+
+<script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
+
+
+<script>
+
+  // ==========================================================
+  // INITIALIZE MAP
+  // ==========================================================
+
+  const map = L.map('map').setView(
+    [44.18125, -89.48712],
+    16
+  );
+
+
+  // ==========================================================
+  // BASEMAPS
+  // ==========================================================
+
+  /*
+   * ----------------------------------------------------------
+   * 1. WAUSHARA COUNTY 2025 WROC IMAGERY
+   *
+   * This is the new primary imagery.
+   *
+   * Waushara County 2025 WROC
+   * Approximately 3-inch pixel resolution.
+   * Collected April-May 2025.
+   * ----------------------------------------------------------
+   */
+
+  const waushara2025 = L.esri.imageMapLayer({
+
+    url:
+      'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer',
+
+    attribution:
+      '2025 imagery © Waushara County / WROC / Ayres Associates'
+
+  });
+
+
+  /*
+   * ----------------------------------------------------------
+   * 2. WISCONSIN DNR LATEST LEAF-OFF
+   *
+   * This is a statewide Wisconsin leaf-off alternative.
+   * ----------------------------------------------------------
+   */
+
+  const wisconsinLeafOff = L.esri.imageMapLayer({
+
+    url:
+      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer',
+
+    attribution:
+      'Imagery © Wisconsin DNR / WROC'
+
+  });
+
+
+  /*
+   * ----------------------------------------------------------
+   * 3. ESRI WORLD IMAGERY
+   *
+   * This is your original basemap.
+   * ----------------------------------------------------------
+   */
+
   const esriImagery = L.tileLayer(
+
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+
     {
       attribution: 'Tiles © Esri',
       maxZoom: 19
     }
-  ).addTo(map);
 
-  // ====================
+  );
+
+
+  // ==========================================================
+  // ADD THE NEW 2025 WAUSHARA IMAGERY BY DEFAULT
+  // ==========================================================
+
+  waushara2025.addTo(map);
+
+
+  // ==========================================================
   // STYLE DEFINITIONS
-  // ====================
+  // ==========================================================
 
-  const trailStyle = { color: "#a3783e", weight: 3, opacity: 1 };
+  const trailStyle = {
+    color: "#a3783e",
+    weight: 3,
+    opacity: 1
+  };
+
 
   const contoursWaterStyle = {
+
     color: "#5891a4",
     weight: 1,
     opacity: 1,
+
     fillColor: "#4e9be8",
     fillOpacity: 0.4
+
   };
 
-  const contours1100Style = { color: "#8f8f8f", weight: 1, opacity: 1 };
-  const contours3Style = { color: "#8f8f8f", weight: 0.75, opacity: 0.9 };
+
+  const contours1100Style = {
+
+    color: "#8f8f8f",
+    weight: 1,
+    opacity: 1
+
+  };
+
+
+  const contours3Style = {
+
+    color: "#8f8f8f",
+    weight: 0.75,
+    opacity: 0.9
+
+  };
+
 
   const standStyle = {
+
     radius: 5,
     fillColor: "yellow",
     color: "black",
     weight: 1,
     fillOpacity: 0.9
+
   };
 
+
   const parcelsStyle = {
+
     color: "red",
     weight: 0.7,
     opacity: 0.8,
     fillOpacity: 0
+
   };
 
-  // ====================
-  // Trails
-  // ====================
+
+  // ==========================================================
+  // TRAILS
+  // ==========================================================
+
   const trailsLayer = L.layerGroup().addTo(map);
+
   fetch('Trails.geojson')
-    .then(r => r.json())
-    .then(d => L.geoJSON(d, { style: trailStyle }).addTo(trailsLayer));
 
-  // ====================
-  // Contours & Water
-  // ====================
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+        style: trailStyle
+      }).addTo(trailsLayer)
+
+    );
+
+
+  // ==========================================================
+  // CONTOURS & WATER
+  // ==========================================================
+
   const contoursWaterLayer = L.layerGroup().addTo(map);
+
   fetch('contourswater.geojson')
-    .then(r => r.json())
-    .then(d => L.geoJSON(d, { style: contoursWaterStyle }).addTo(contoursWaterLayer));
 
-  // ====================
-  // 1100' Contours
-  // ====================
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+        style: contoursWaterStyle
+      }).addTo(contoursWaterLayer)
+
+    );
+
+
+  // ==========================================================
+  // 1100' CONTOURS
+  // ==========================================================
+
   const contours1100Layer = L.layerGroup().addTo(map);
+
   fetch('contours1100.geojson')
-    .then(r => r.json())
-    .then(d => L.geoJSON(d, { style: contours1100Style }).addTo(contours1100Layer));
 
-  // ====================
-  // 3' Contours
-  // ====================
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+        style: contours1100Style
+      }).addTo(contours1100Layer)
+
+    );
+
+
+  // ==========================================================
+  // 3' CONTOURS
+  // ==========================================================
+
   const contours3Layer = L.layerGroup().addTo(map);
+
   fetch('contours3.geojson')
-    .then(r => r.json())
-    .then(d => L.geoJSON(d, { style: contours3Style }).addTo(contours3Layer));
 
-  // ====================
-  // Stands (LABELED)
-  // ====================
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+        style: contours3Style
+      }).addTo(contours3Layer)
+
+    );
+
+
+  // ==========================================================
+  // STANDS
+  // ==========================================================
+
   const standsLayer = L.layerGroup().addTo(map);
-  fetch('Stands.geojson')
-    .then(r => r.json())
-    .then(data => {
-      L.geoJSON(data, {
-        pointToLayer: (feature, latlng) => {
-          const marker = L.circleMarker(latlng, standStyle);
 
-          const label = feature.properties.Name; // ← EXACT FIELD NAME
+  fetch('Stands.geojson')
+
+    .then(r => r.json())
+
+    .then(data => {
+
+      L.geoJSON(data, {
+
+        pointToLayer: (feature, latlng) => {
+
+          const marker =
+            L.circleMarker(latlng, standStyle);
+
+          const label =
+            feature.properties.Name;
 
           if (label) {
+
             marker.bindTooltip(label, {
+
               permanent: true,
+
               direction: "top",
+
               offset: [0, -8],
+
               className: "stand-label"
+
             });
+
           }
+
           return marker;
+
         }
+
       }).addTo(standsLayer);
+
     });
 
-  // ====================
-  // Parcels
-  // ====================
-  const parcelsLayer = L.layerGroup().addTo(map);
-  fetch('Parcels.geojson')
-    .then(r => r.json())
-    .then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
 
-  // ====================
-  // Layer Control
-  // ====================
+  // ==========================================================
+  // PARCELS
+  // ==========================================================
+
+  const parcelsLayer = L.layerGroup().addTo(map);
+
+  fetch('Parcels.geojson')
+
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+        style: parcelsStyle
+      }).addTo(parcelsLayer)
+
+    );
+
+
+  // ==========================================================
+  // LAYER CONTROL
+  // ==========================================================
+
   L.control.layers(
-    { "ESRI World Imagery": esriImagery },
+
     {
-      "Trails": trailsLayer,
-      "Contours & Water": contoursWaterLayer,
-      "1100' Contours": contours1100Layer,
-      "3' Contours": contours3Layer,
-      "Stands": standsLayer,
-      "Parcels": parcelsLayer
+
+      "2025 Waushara County WROC — Leaf-Off":
+        waushara2025,
+
+      "Wisconsin DNR — Latest Leaf-Off":
+        wisconsinLeafOff,
+
+      "ESRI World Imagery":
+        esriImagery
+
     },
-    { collapsed: true }
+
+    {
+
+      "Trails":
+        trailsLayer,
+
+      "Contours & Water":
+        contoursWaterLayer,
+
+      "1100' Contours":
+        contours1100Layer,
+
+      "3' Contours":
+        contours3Layer,
+
+      "Stands":
+        standsLayer,
+
+      "Parcels":
+        parcelsLayer
+
+    },
+
+    {
+      collapsed: true
+    }
+
   ).addTo(map);
+
 </script>
 
 </body>
