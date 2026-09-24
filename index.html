@@ -4,18 +4,21 @@
 <meta charset="utf-8" />
 
 <title>
-  Waushara County 2025 Imagery with Trails, Stands, Contours, and Parcels
+  Waushara County Imagery with Trails, Stands, Contours, and Parcels
 </title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
 <!-- =========================================================
      LEAFLET CSS
      ========================================================= -->
+
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
+
 
 <style>
 
@@ -29,6 +32,7 @@
     width: 100%;
   }
 
+
   /* =========================================================
      STAND LABELS
      ========================================================= */
@@ -37,15 +41,21 @@
     font-size: 12px;
     font-weight: bold;
     color: black;
+
     background: rgba(255, 255, 255, 0.75);
+
     border: 1px solid #333;
     border-radius: 3px;
+
     padding: 1px 4px;
+
     white-space: nowrap;
   }
 
 </style>
+
 </head>
+
 
 <body>
 
@@ -61,14 +71,13 @@
 
 <!-- =========================================================
      ESRI LEAFLET
-     
-     Needed for displaying ArcGIS ImageServer imagery.
      ========================================================= -->
 
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
 
 <script>
+
 
   // ==========================================================
   // INITIALIZE MAP
@@ -81,20 +90,15 @@
 
 
   // ==========================================================
-  // BASEMAPS
+  // BASEMAP 1
+  //
+  // WAUSHARA COUNTY 2025 WROC
+  //
+  // LEAF-OFF
+  //
+  // 3-inch pixel imagery
+  // April-May 2025
   // ==========================================================
-
-  /*
-   * ----------------------------------------------------------
-   * 1. WAUSHARA COUNTY 2025 WROC IMAGERY
-   *
-   * This is the new primary imagery.
-   *
-   * Waushara County 2025 WROC
-   * Approximately 3-inch pixel resolution.
-   * Collected April-May 2025.
-   * ----------------------------------------------------------
-   */
 
   const waushara2025 = L.esri.imageMapLayer({
 
@@ -107,13 +111,11 @@
   });
 
 
-  /*
-   * ----------------------------------------------------------
-   * 2. WISCONSIN DNR LATEST LEAF-OFF
-   *
-   * This is a statewide Wisconsin leaf-off alternative.
-   * ----------------------------------------------------------
-   */
+  // ==========================================================
+  // BASEMAP 2
+  //
+  // WISCONSIN DNR LATEST LEAF-OFF
+  // ==========================================================
 
   const wisconsinLeafOff = L.esri.imageMapLayer({
 
@@ -126,13 +128,35 @@
   });
 
 
-  /*
-   * ----------------------------------------------------------
-   * 3. ESRI WORLD IMAGERY
-   *
-   * This is your original basemap.
-   * ----------------------------------------------------------
-   */
+  // ==========================================================
+  // BASEMAP 3
+  //
+  // WISCONSIN DNR LEAF-ON
+  //
+  // Current DNR statewide leaf-on service.
+  //
+  // 2022 USDA NAIP
+  // 0.6-meter pixel resolution
+  // ==========================================================
+
+  const wisconsinLeafOn = L.esri.imageMapLayer({
+
+    url:
+      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer',
+
+    attribution:
+      'Imagery © Wisconsin DNR / USDA NAIP'
+
+  });
+
+
+  // ==========================================================
+  // BASEMAP 4
+  //
+  // ESRI WORLD IMAGERY
+  //
+  // Your original basemap
+  // ==========================================================
 
   const esriImagery = L.tileLayer(
 
@@ -147,7 +171,10 @@
 
 
   // ==========================================================
-  // ADD THE NEW 2025 WAUSHARA IMAGERY BY DEFAULT
+  // DEFAULT BASEMAP
+  //
+  // Start with the high-resolution 2025
+  // Waushara County imagery.
   // ==========================================================
 
   waushara2025.addTo(map);
@@ -158,19 +185,24 @@
   // ==========================================================
 
   const trailStyle = {
+
     color: "#a3783e",
     weight: 3,
     opacity: 1
+
   };
 
 
   const contoursWaterStyle = {
 
     color: "#5891a4",
+
     weight: 1,
+
     opacity: 1,
 
     fillColor: "#4e9be8",
+
     fillOpacity: 0.4
 
   };
@@ -179,7 +211,9 @@
   const contours1100Style = {
 
     color: "#8f8f8f",
+
     weight: 1,
+
     opacity: 1
 
   };
@@ -188,7 +222,9 @@
   const contours3Style = {
 
     color: "#8f8f8f",
+
     weight: 0.75,
+
     opacity: 0.9
 
   };
@@ -197,9 +233,13 @@
   const standStyle = {
 
     radius: 5,
+
     fillColor: "yellow",
+
     color: "black",
+
     weight: 1,
+
     fillOpacity: 0.9
 
   };
@@ -208,8 +248,11 @@
   const parcelsStyle = {
 
     color: "red",
+
     weight: 0.7,
+
     opacity: 0.8,
+
     fillOpacity: 0
 
   };
@@ -228,7 +271,9 @@
     .then(d =>
 
       L.geoJSON(d, {
+
         style: trailStyle
+
       }).addTo(trailsLayer)
 
     );
@@ -247,7 +292,9 @@
     .then(d =>
 
       L.geoJSON(d, {
+
         style: contoursWaterStyle
+
       }).addTo(contoursWaterLayer)
 
     );
@@ -266,7 +313,9 @@
     .then(d =>
 
       L.geoJSON(d, {
+
         style: contours1100Style
+
       }).addTo(contours1100Layer)
 
     );
@@ -285,7 +334,9 @@
     .then(d =>
 
       L.geoJSON(d, {
+
         style: contours3Style
+
       }).addTo(contours3Layer)
 
     );
@@ -351,7 +402,9 @@
     .then(d =>
 
       L.geoJSON(d, {
+
         style: parcelsStyle
+
       }).addTo(parcelsLayer)
 
     );
@@ -370,6 +423,9 @@
 
       "Wisconsin DNR — Latest Leaf-Off":
         wisconsinLeafOff,
+
+      "Wisconsin DNR — Leaf-On":
+        wisconsinLeafOn,
 
       "ESRI World Imagery":
         esriImagery
@@ -403,6 +459,7 @@
     }
 
   ).addTo(map);
+
 
 </script>
 
