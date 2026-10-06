@@ -85,8 +85,8 @@
     { attribution: 'Tiles © Esri', maxZoom: 19 }
   );
 
-  // NEW — Sheboygan County Imagery
-  const sheboyganImagery = L.esri.tiledMapLayer({
+  // FIXED — Sheboygan County Imagery (correct layer type)
+  const sheboyganImagery = L.esri.imageMapLayer({
     url: "https://services2.arcgis.com/1Yc1vX1xXrM9u9gP/ArcGIS/rest/services/Sheboygan_County_Imagery/MapServer",
     attribution: "Imagery © Sheboygan County GIS"
   });
@@ -144,59 +144,17 @@
   fetch('Parcels.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
 
   // ==========================================================
-  // LAYER CONTROL (with GPS section)
+  // GPS OVERLAY (real Leaflet layer)
   // ==========================================================
 
-  const baseMaps = {
-    "2025 Waushara County WROC — Leaf-Off": waushara2025,
-    "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
-    "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
-    "ESRI World Imagery": esriImagery,
-    "Sheboygan County Imagery — Latest": sheboyganImagery
-  };
-
-  const overlays = {
-    "Trails": trailsLayer,
-    "Contours & Water": contoursWaterLayer,
-    "1100' Contours": contours1100Layer,
-    "3' Contours": contours3Layer,
-    "Stands": standsLayer,
-    "Parcels": parcelsLayer
-  };
-
-  const gpsLayer = L.layerGroup(); // placeholder for toggle
-
-  const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
-
-  // Add GPS section manually
-  const gpsDiv = L.DomUtil.create('div', 'leaflet-control-layers-separator');
-  gpsDiv.innerHTML = "<strong>GPS</strong>";
-  layerControl._container.querySelector('.leaflet-control-layers-list').appendChild(gpsDiv);
-
-  const gpsCheckbox = L.DomUtil.create('input');
-  gpsCheckbox.type = "checkbox";
-  gpsCheckbox.id = "gpsToggle";
-
-  const gpsLabel = L.DomUtil.create('label');
-  gpsLabel.htmlFor = "gpsToggle";
-  gpsLabel.innerHTML = " Show My Location";
-
-  const gpsContainer = L.DomUtil.create('div');
-  gpsContainer.appendChild(gpsCheckbox);
-  gpsContainer.appendChild(gpsLabel);
-
-  layerControl._container.querySelector('.leaflet-control-layers-list').appendChild(gpsContainer);
-
-  // ==========================================================
-  // GPS + AUTO‑TRACKING + HEADING (only when toggle is ON)
-  // ==========================================================
+  const gpsLayer = L.layerGroup(); // placeholder layer
 
   let userMarker = null;
   let headingMarker = null;
-  let gpsWatchID = null;
+  let initialGPSCentered = false;
 
   function startGPS() {
-    gpsWatchID = map.locate({
+    map.locate({
       watch: true,
       enableHighAccuracy: true
     });
@@ -209,6 +167,8 @@
     map.stopLocate();
     map.off("locationfound", onLocationFound);
     map.off("locationerror", onLocationError);
+
+    initialGPSCentered = false;
 
     if (userMarker) {
       map.removeLayer(userMarker);
@@ -223,6 +183,12 @@
   function onLocationFound(e) {
     const latlng = e.latlng;
 
+    // Center map only once
+    if (!initialGPSCentered) {
+      map.setView(latlng, 17);
+      initialGPSCentered = true;
+    }
+
     if (!userMarker) {
       userMarker = L.circleMarker(latlng, {
         radius: 8,
@@ -230,7 +196,7 @@
         color: "#ffffff",
         weight: 2,
         fillOpacity: 0.9
-      }).addTo(map);
+      }).addTo(gpsLayer);
     } else {
       userMarker.setLatLng(latlng);
     }
@@ -242,7 +208,7 @@
           html: '<div class="heading-arrow"></div>',
           iconSize: [20, 20]
         })
-      }).addTo(map);
+      }).addTo(gpsLayer);
     } else {
       headingMarker.setLatLng(latlng);
     }
@@ -262,10 +228,39 @@
     }
   });
 
-  gpsCheckbox.addEventListener("change", function() {
-    if (this.checked) {
+  // ==========================================================
+  // LAYER CONTROL (GPS at bottom)
+  // ==========================================================
+
+  const baseMaps = {
+    "2025 Waushara County WROC — Leaf-Off": waushara2025,
+    "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
+    "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
+    "ESRI World Imagery": esriImagery,
+    "Sheboygan County Imagery — Latest": sheboyganImagery
+  };
+
+  const overlays = {
+    "Trails": trailsLayer,
+    "Contours & Water": contoursWaterLayer,
+    "1100' Contours": contours1100Layer,
+    "3' Contours": contours3Layer,
+    "Stands": standsLayer,
+    "Parcels": parcelsLayer,
+    "Show My Location": gpsLayer   // <-- GPS at bottom
+  };
+
+  const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
+
+  // GPS toggle behavior
+  map.on('overlayadd', function(e) {
+    if (e.name === "Show My Location") {
       startGPS();
-    } else {
+    }
+  });
+
+  map.on('overlayremove', function(e) {
+    if (e.name === "Show My Location") {
       stopGPS();
     }
   });
