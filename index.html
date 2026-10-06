@@ -80,9 +80,9 @@
     attribution: 'Imagery © Wisconsin DNR / USDA NAIP'
   });
 
-  // NEW — NAIP 2022 (fast statewide imagery)
+  // ⭐ FIXED — Working NAIP 2022 (fast, tiled, reliable)
   const naip2022 = L.tileLayer(
-    "https://services.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/tile/{z}/{y}/{x}",
+    "https://basemap.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/MapServer/tile/{z}/{y}/{x}",
     {
       attribution: "Imagery © USDA NAIP / USGS",
       maxZoom: 19
@@ -243,8 +243,8 @@
     "2025 Waushara County WROC — Leaf-Off": waushara2025,
     "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
     "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
-    "NAIP 2022 — USDA / USGS": naip2022,
-    "ESRI World Imagery": esriImagery
+    "ESRI World Imagery": esriImagery,
+    "NAIP 2022 — USDA / USGS": naip2022   // ⭐ NAIP at bottom
   };
 
   const overlays = {
