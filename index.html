@@ -41,14 +41,7 @@
     white-space: nowrap;
   }
 
-  .heading-arrow {
-    width: 20px;
-    height: 20px;
-    background: lime;
-    border-radius: 50%;
-    border: 2px solid white;
-    transform-origin: center;
-  }
+  
 </style>
 
 </head>
@@ -147,10 +140,13 @@
   // ==========================================================
 
   const gpsLayer = L.layerGroup();
-  const breadcrumbLayer = L.polyline([], { color: "orange", weight: 3 });
+  const breadcrumbLayer = L.polyline([], {
+    color: "white",
+    weight: 3,
+    opacity: 0.9
+  });
 
   let userMarker = null;
-  let headingMarker = null;
   let initialGPSCentered = false;
   let breadcrumbEnabled = false;
 
@@ -175,10 +171,7 @@
       map.removeLayer(userMarker);
       userMarker = null;
     }
-    if (headingMarker) {
-      map.removeLayer(headingMarker);
-      headingMarker = null;
-    }
+    
   }
 
   function onLocationFound(e) {
@@ -193,30 +186,17 @@
     // Location dot (true blue, smaller)
     if (!userMarker) {
       userMarker = L.circleMarker(latlng, {
-        radius: 10,
-        fillColor: "#007bff",
-        color: "#ffffff",
-        weight: 2,
-        fillOpacity: 0.9
-      }).addTo(gpsLayer);
+radius: 7,
+fillColor: "lime",
+color: "#ffffff",
+weight: 2,
+fillOpacity: 0.95
+}).addTo(gpsLayer);
     } else {
       userMarker.setLatLng(latlng);
     }
 
-    // Heading arrow
-    /*
-    if (!headingMarker) {
-      headingMarker = L.marker(latlng, {
-        icon: L.divIcon({
-          className: "",
-          html: '<div class="heading-arrow"></div>',
-          iconSize: [20, 20]
-        })
-      }).addTo(gpsLayer);
-    } else {
-      headingMarker.setLatLng(latlng);
-    }
-    */
+   
     
     // Breadcrumb trail
     if (breadcrumbEnabled) {
@@ -228,16 +208,6 @@
     alert("GPS error: " + e.message);
   }
 
-  /*window.addEventListener("deviceorientation", function(event) {
-    if (headingMarker && event.alpha !== null) {
-      const heading = event.alpha;
-      const arrow = headingMarker.getElement().querySelector(".heading-arrow");
-      if (arrow) {
-        arrow.style.transform = `rotate(${heading}deg)`;
-      }
-    }
-  });
-  */
 
   // ==========================================================
   // LAYER CONTROL (NAIP REMOVED)
