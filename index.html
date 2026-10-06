@@ -85,12 +85,6 @@
     { attribution: 'Tiles © Esri', maxZoom: 19 }
   );
 
-  // FIXED — Sheboygan County Imagery (correct layer type)
-  const sheboyganImagery = L.esri.imageMapLayer({
-    url: "https://services2.arcgis.com/1Yc1vX1xXrM9u9gP/ArcGIS/rest/services/Sheboygan_County_Imagery/MapServer",
-    attribution: "Imagery © Sheboygan County GIS"
-  });
-
   // Default basemap
   waushara2025.addTo(map);
 
@@ -147,7 +141,7 @@
   // GPS OVERLAY (real Leaflet layer)
   // ==========================================================
 
-  const gpsLayer = L.layerGroup(); // placeholder layer
+  const gpsLayer = L.layerGroup();
 
   let userMarker = null;
   let headingMarker = null;
@@ -191,7 +185,7 @@
 
     if (!userMarker) {
       userMarker = L.circleMarker(latlng, {
-        radius: 8,
+        radius: 6.5,   // 20% smaller
         fillColor: "#00aaff",
         color: "#ffffff",
         weight: 2,
@@ -236,8 +230,7 @@
     "2025 Waushara County WROC — Leaf-Off": waushara2025,
     "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
     "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
-    "ESRI World Imagery": esriImagery,
-    "Sheboygan County Imagery — Latest": sheboyganImagery
+    "ESRI World Imagery": esriImagery
   };
 
   const overlays = {
@@ -247,7 +240,7 @@
     "3' Contours": contours3Layer,
     "Stands": standsLayer,
     "Parcels": parcelsLayer,
-    "Show My Location": gpsLayer   // <-- GPS at bottom
+    "Show My Location": gpsLayer   // GPS at bottom
   };
 
   const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
