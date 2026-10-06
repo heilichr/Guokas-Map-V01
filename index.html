@@ -80,9 +80,13 @@
     attribution: 'Imagery © Wisconsin DNR / USDA NAIP'
   });
 
-  const esriImagery = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { attribution: 'Tiles © Esri', maxZoom: 19 }
+  // NEW — NAIP 2022 (fast statewide imagery)
+  const naip2022 = L.tileLayer(
+    "https://services.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Imagery © USDA NAIP / USGS",
+      maxZoom: 19
+    }
   );
 
   // Default basemap
@@ -138,14 +142,16 @@
   fetch('Parcels.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
 
   // ==========================================================
-  // GPS OVERLAY (real Leaflet layer)
+  // GPS OVERLAY + BREADCRUMB TRAIL
   // ==========================================================
 
   const gpsLayer = L.layerGroup();
+  const breadcrumbLayer = L.polyline([], { color: "orange", weight: 3 });
 
   let userMarker = null;
   let headingMarker = null;
   let initialGPSCentered = false;
+  let breadcrumbEnabled = false;
 
   function startGPS() {
     map.locate({
@@ -183,10 +189,11 @@
       initialGPSCentered = true;
     }
 
+    // Location dot (true blue, smaller)
     if (!userMarker) {
       userMarker = L.circleMarker(latlng, {
-        radius: 6.5,   // 20% smaller
-        fillColor: "#00aaff",
+        radius: 5,
+        fillColor: "#007bff",
         color: "#ffffff",
         weight: 2,
         fillOpacity: 0.9
@@ -195,6 +202,7 @@
       userMarker.setLatLng(latlng);
     }
 
+    // Heading arrow
     if (!headingMarker) {
       headingMarker = L.marker(latlng, {
         icon: L.divIcon({
@@ -205,6 +213,11 @@
       }).addTo(gpsLayer);
     } else {
       headingMarker.setLatLng(latlng);
+    }
+
+    // Breadcrumb trail
+    if (breadcrumbEnabled) {
+      breadcrumbLayer.addLatLng(latlng);
     }
   }
 
@@ -223,38 +236,47 @@
   });
 
   // ==========================================================
-  // LAYER CONTROL (GPS at bottom)
+  // LAYER CONTROL (GPS + Breadcrumb at top of overlays)
   // ==========================================================
 
   const baseMaps = {
     "2025 Waushara County WROC — Leaf-Off": waushara2025,
     "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
     "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
+    "NAIP 2022 — USDA / USGS": naip2022,
     "ESRI World Imagery": esriImagery
   };
 
   const overlays = {
+    "Show My Location": gpsLayer,
+    "Breadcrumb Trail": breadcrumbLayer,
     "Trails": trailsLayer,
     "Contours & Water": contoursWaterLayer,
     "1100' Contours": contours1100Layer,
     "3' Contours": contours3Layer,
     "Stands": standsLayer,
-    "Parcels": parcelsLayer,
-    "Show My Location": gpsLayer   // GPS at bottom
+    "Parcels": parcelsLayer
   };
 
   const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
 
-  // GPS toggle behavior
+  // GPS toggle
   map.on('overlayadd', function(e) {
     if (e.name === "Show My Location") {
       startGPS();
+    }
+    if (e.name === "Breadcrumb Trail") {
+      breadcrumbEnabled = true;
     }
   });
 
   map.on('overlayremove', function(e) {
     if (e.name === "Show My Location") {
       stopGPS();
+    }
+    if (e.name === "Breadcrumb Trail") {
+      breadcrumbEnabled = false;
+      breadcrumbLayer.setLatLngs([]); // clear trail
     }
   });
 
