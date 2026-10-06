@@ -36,7 +36,6 @@
     white-space: nowrap;
   }
 
-  /* Compass arrow */
   .heading-arrow {
     width: 20px;
     height: 20px;
@@ -57,7 +56,14 @@
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
 <script>
+  // ==========================================================
+  // INITIALIZE MAP (Plainfield default)
+  // ==========================================================
   const map = L.map('map').setView([44.18125, -89.48712], 16);
+
+  // ==========================================================
+  // BASEMAPS
+  // ==========================================================
 
   const waushara2025 = L.esri.imageMapLayer({
     url: 'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer',
@@ -79,7 +85,18 @@
     { attribution: 'Tiles © Esri', maxZoom: 19 }
   );
 
+  // NEW — Sheboygan County Imagery
+  const sheboyganImagery = L.esri.tiledMapLayer({
+    url: "https://services2.arcgis.com/1Yc1vX1xXrM9u9gP/ArcGIS/rest/services/Sheboygan_County_Imagery/MapServer",
+    attribution: "Imagery © Sheboygan County GIS"
+  });
+
+  // Default basemap
   waushara2025.addTo(map);
+
+  // ==========================================================
+  // STYLE DEFINITIONS
+  // ==========================================================
 
   const trailStyle = { color: "#a3783e", weight: 3, opacity: 1 };
   const contoursWaterStyle = { color: "#5891a4", weight: 1, opacity: 1, fillColor: "#4e9be8", fillOpacity: 0.4 };
@@ -87,6 +104,10 @@
   const contours3Style = { color: "#8f8f8f", weight: 0.75, opacity: 0.9 };
   const standStyle = { radius: 5, fillColor: "yellow", color: "black", weight: 1, fillOpacity: 0.9 };
   const parcelsStyle = { color: "red", weight: 0.7, opacity: 0.8, fillOpacity: 0 };
+
+  // ==========================================================
+  // LOAD GEOJSON LAYERS
+  // ==========================================================
 
   const trailsLayer = L.layerGroup().addTo(map);
   fetch('Trails.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: trailStyle }).addTo(trailsLayer));
@@ -122,44 +143,86 @@
   const parcelsLayer = L.layerGroup().addTo(map);
   fetch('Parcels.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
 
-  L.control.layers(
-    {
-      "2025 Waushara County WROC — Leaf-Off": waushara2025,
-      "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
-      "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
-      "ESRI World Imagery": esriImagery
-    },
-    {
-      "Trails": trailsLayer,
-      "Contours & Water": contoursWaterLayer,
-      "1100' Contours": contours1100Layer,
-      "3' Contours": contours3Layer,
-      "Stands": standsLayer,
-      "Parcels": parcelsLayer
-    },
-    { collapsed: true }
-  ).addTo(map);
+  // ==========================================================
+  // LAYER CONTROL (with GPS section)
+  // ==========================================================
 
+  const baseMaps = {
+    "2025 Waushara County WROC — Leaf-Off": waushara2025,
+    "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
+    "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
+    "ESRI World Imagery": esriImagery,
+    "Sheboygan County Imagery — Latest": sheboyganImagery
+  };
+
+  const overlays = {
+    "Trails": trailsLayer,
+    "Contours & Water": contoursWaterLayer,
+    "1100' Contours": contours1100Layer,
+    "3' Contours": contours3Layer,
+    "Stands": standsLayer,
+    "Parcels": parcelsLayer
+  };
+
+  const gpsLayer = L.layerGroup(); // placeholder for toggle
+
+  const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
+
+  // Add GPS section manually
+  const gpsDiv = L.DomUtil.create('div', 'leaflet-control-layers-separator');
+  gpsDiv.innerHTML = "<strong>GPS</strong>";
+  layerControl._container.querySelector('.leaflet-control-layers-list').appendChild(gpsDiv);
+
+  const gpsCheckbox = L.DomUtil.create('input');
+  gpsCheckbox.type = "checkbox";
+  gpsCheckbox.id = "gpsToggle";
+
+  const gpsLabel = L.DomUtil.create('label');
+  gpsLabel.htmlFor = "gpsToggle";
+  gpsLabel.innerHTML = " Show My Location";
+
+  const gpsContainer = L.DomUtil.create('div');
+  gpsContainer.appendChild(gpsCheckbox);
+  gpsContainer.appendChild(gpsLabel);
+
+  layerControl._container.querySelector('.leaflet-control-layers-list').appendChild(gpsContainer);
 
   // ==========================================================
-  // GPS + AUTO‑TRACKING + HEADING
+  // GPS + AUTO‑TRACKING + HEADING (only when toggle is ON)
   // ==========================================================
 
   let userMarker = null;
   let headingMarker = null;
+  let gpsWatchID = null;
 
-  // Start GPS tracking
-  map.locate({
-    setView: true,
-    watch: true,
-    enableHighAccuracy: true,
-    maxZoom: 18
-  });
+  function startGPS() {
+    gpsWatchID = map.locate({
+      watch: true,
+      enableHighAccuracy: true
+    });
 
-  map.on("locationfound", function(e) {
+    map.on("locationfound", onLocationFound);
+    map.on("locationerror", onLocationError);
+  }
+
+  function stopGPS() {
+    map.stopLocate();
+    map.off("locationfound", onLocationFound);
+    map.off("locationerror", onLocationError);
+
+    if (userMarker) {
+      map.removeLayer(userMarker);
+      userMarker = null;
+    }
+    if (headingMarker) {
+      map.removeLayer(headingMarker);
+      headingMarker = null;
+    }
+  }
+
+  function onLocationFound(e) {
     const latlng = e.latlng;
 
-    // Update or create user marker
     if (!userMarker) {
       userMarker = L.circleMarker(latlng, {
         radius: 8,
@@ -172,7 +235,6 @@
       userMarker.setLatLng(latlng);
     }
 
-    // Update or create heading marker
     if (!headingMarker) {
       headingMarker = L.marker(latlng, {
         icon: L.divIcon({
@@ -184,20 +246,27 @@
     } else {
       headingMarker.setLatLng(latlng);
     }
-  });
+  }
 
-  map.on("locationerror", function(e) {
+  function onLocationError(e) {
     alert("GPS error: " + e.message);
-  });
+  }
 
-  // Device orientation → heading
   window.addEventListener("deviceorientation", function(event) {
     if (headingMarker && event.alpha !== null) {
-      const heading = event.alpha; // degrees
+      const heading = event.alpha;
       const arrow = headingMarker.getElement().querySelector(".heading-arrow");
       if (arrow) {
         arrow.style.transform = `rotate(${heading}deg)`;
       }
+    }
+  });
+
+  gpsCheckbox.addEventListener("change", function() {
+    if (this.checked) {
+      startGPS();
+    } else {
+      stopGPS();
     }
   });
 
