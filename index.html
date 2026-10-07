@@ -139,17 +139,104 @@
   // GPS OVERLAY + BREADCRUMB TRAIL
   // ==========================================================
 
-  const gpsLayer = L.layerGroup();
-  const breadcrumbLayer = L.polyline([], {
-    color: "white",
-    weight: 3,
-    opacity: 0.9
-  });
+ const gpsLayer = L.layerGroup();
+
+const breadcrumbLayer = L.polyline([], {
+  color: "white",
+  weight: 3,
+  opacity: 0.9
+});
+
+const scoutingPinsLayer = L.layerGroup();
+
+let scoutingPins = [];
 
   let userMarker = null;
   let initialGPSCentered = false;
   let breadcrumbEnabled = false;
 
+function saveScoutingPins() {
+  localStorage.setItem(
+    "scoutingPins",
+    JSON.stringify(scoutingPins)
+  );
+}
+
+function loadScoutingPins() {
+
+  const saved =
+    localStorage.getItem("scoutingPins");
+
+  if (!saved) return;
+
+  scoutingPins = JSON.parse(saved);
+
+  scoutingPins.forEach(pin => {
+
+    createScoutingPin(
+      L.latLng(pin.lat, pin.lng),
+      false
+    );
+
+  });
+}
+
+function createScoutingPin(latlng, save = true) {
+
+  const marker = L.circleMarker(latlng, {
+    radius: 8,
+    fillColor: "#cc00ff",
+    color: "#ffffff",
+    weight: 2,
+    fillOpacity: 0.9
+  });
+
+  marker.bindPopup(`
+    <b>Scouting Pin</b><br>
+    Lat: ${latlng.lat.toFixed(6)}<br>
+    Lon: ${latlng.lng.toFixed(6)}
+    <br><br>
+    <button onclick="deleteScoutingPin(${latlng.lat}, ${latlng.lng})">
+      Delete
+    </button>
+  `);
+
+  scoutingPinsLayer.addLayer(marker);
+
+  if (save) {
+
+    scoutingPins.push({
+      lat: latlng.lat,
+      lng: latlng.lng
+    });
+
+    saveScoutingPins();
+  }
+}
+
+window.deleteScoutingPin = function(lat, lng) {
+
+  scoutingPins =
+    scoutingPins.filter(
+      p =>
+        p.lat !== lat ||
+        p.lng !== lng
+    );
+
+  scoutingPinsLayer.clearLayers();
+
+  scoutingPins.forEach(pin => {
+
+    createScoutingPin(
+      L.latLng(pin.lat, pin.lng),
+      false
+    );
+
+  });
+
+  saveScoutingPins();
+};
+  
   function startGPS() {
     map.locate({
       watch: true,
@@ -223,6 +310,7 @@ fillOpacity: 0.95
   const overlays = {
     "Show My Location": gpsLayer,
     "Breadcrumb Trail": breadcrumbLayer,
+    "Scouting Pins": scoutingPinsLayer,
     "Trails": trailsLayer,
     "Contours & Water": contoursWaterLayer,
     "1100' Contours": contours1100Layer,
@@ -231,6 +319,51 @@ fillOpacity: 0.95
     "Parcels": parcelsLayer
   };
 
+  loadScoutingPins();
+  
+ let pressTimer;
+
+map.on('mousedown', function(e) {
+
+  pressTimer = setTimeout(() => {
+
+    createScoutingPin(e.latlng);
+
+  }, 800);
+
+});
+
+map.on('mouseup', function() {
+
+  clearTimeout(pressTimer);
+
+});
+
+map.on('mouseout', function() {
+
+  clearTimeout(pressTimer);
+
+});
+
+map.on('touchstart', function(e) {
+
+  pressTimer = setTimeout(() => {
+
+    if (e.latlng) {
+      createScoutingPin(e.latlng);
+    }
+
+  }, 800);
+
+});
+
+map.on('touchend', function() {
+
+  clearTimeout(pressTimer);
+
+});
+  
+  
   const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
 
   // GPS toggle
