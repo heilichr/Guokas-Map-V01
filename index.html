@@ -41,6 +41,25 @@
     white-space: nowrap;
   }
 
+  #scouting-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: rgba(128, 0, 128, 0.85);
+  color: white;
+
+  font-weight: bold;
+  font-size: 14px;
+
+  padding: 6px 12px;
+  border-radius: 4px;
+
+  z-index: 1000;
+
+  display: none;
+}
   
 </style>
 
@@ -50,6 +69,10 @@
 
 <div id="map"></div>
 
+<div id="scouting-banner">
+  SCOUTING MODE ACTIVE
+</div>
+  
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
@@ -151,6 +174,11 @@ const scoutingPinsLayer = L.layerGroup();
 
 let scoutingPins = [];
 
+const scoutingModeLayer = L.layerGroup();
+
+let scoutingModeEnabled = false;
+  
+  
   let userMarker = null;
   let initialGPSCentered = false;
   let breadcrumbEnabled = false;
@@ -310,6 +338,7 @@ fillOpacity: 0.95
   const overlays = {
     "Show My Location": gpsLayer,
     "Breadcrumb Trail": breadcrumbLayer,
+    "Scouting Mode": scoutingModeLayer,
     "Scouting Pins": scoutingPinsLayer,
     "Trails": trailsLayer,
     "Contours & Water": contoursWaterLayer,
@@ -321,71 +350,57 @@ fillOpacity: 0.95
 
   loadScoutingPins();
   
- let pressTimer;
+map.on('click', function(e) {
 
-map.on('mousedown', function(e) {
+  if (!scoutingModeEnabled) return;
 
-  pressTimer = setTimeout(() => {
-
-    createScoutingPin(e.latlng);
-
-  }, 800);
+  createScoutingPin(e.latlng);
 
 });
-
-map.on('mouseup', function() {
-
-  clearTimeout(pressTimer);
-
-});
-
-map.on('mouseout', function() {
-
-  clearTimeout(pressTimer);
-
-});
-
-map.on('touchstart', function(e) {
-
-  pressTimer = setTimeout(() => {
-
-    if (e.latlng) {
-      createScoutingPin(e.latlng);
-    }
-
-  }, 800);
-
-});
-
-map.on('touchend', function() {
-
-  clearTimeout(pressTimer);
-
-});
-  
   
   const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
 
   // GPS toggle
   map.on('overlayadd', function(e) {
-    if (e.name === "Show My Location") {
-      startGPS();
-    }
-    if (e.name === "Breadcrumb Trail") {
-      breadcrumbEnabled = true;
-    }
-  });
 
-  map.on('overlayremove', function(e) {
-    if (e.name === "Show My Location") {
-      stopGPS();
-    }
-    if (e.name === "Breadcrumb Trail") {
-      breadcrumbEnabled = false;
-      breadcrumbLayer.setLatLngs([]); // clear trail
-    }
-  });
+  if (e.name === "Show My Location") {
+    startGPS();
+  }
 
+  if (e.name === "Breadcrumb Trail") {
+    breadcrumbEnabled = true;
+  }
+
+  if (e.name === "Scouting Mode") {
+
+    scoutingModeEnabled = true;
+
+    document.getElementById(
+      "scouting-banner"
+    ).style.display = "block";
+  }
+});
+
+ map.on('overlayremove', function(e) {
+
+  if (e.name === "Show My Location") {
+    stopGPS();
+  }
+
+  if (e.name === "Breadcrumb Trail") {
+    breadcrumbEnabled = false;
+    breadcrumbLayer.setLatLngs([]);
+  }
+
+  if (e.name === "Scouting Mode") {
+
+    scoutingModeEnabled = false;
+
+    document.getElementById(
+      "scouting-banner"
+    ).style.display = "none";
+  }
+});
 </script>
 
 </body>
