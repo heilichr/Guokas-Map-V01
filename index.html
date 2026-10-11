@@ -55,7 +55,7 @@ let savedTrails=[];
 const MIN_TRAIL_DISTANCE = 5;
 const TURN_THRESHOLD = 15; // degrees
 
-let lastHeading = null;
+
 function saveTrails(){localStorage.setItem('recordedTrails',JSON.stringify(savedTrails));}
 function redrawTrails(){recordedTrailsLayer.clearLayers(); savedTrails.forEach((trail,index)=>{const p=L.polyline(trail.points,{color:'white',weight:4,opacity:.9}); p.bindPopup(`<b>Recorded Trail</b><br>${trail.date}<br><br><button onclick="deleteTrail(${index})">Delete Trail</button>`); recordedTrailsLayer.addLayer(p);});}
 function loadTrails(){const s=localStorage.getItem('recordedTrails'); if(!s)return; savedTrails=JSON.parse(s); redrawTrails();}
@@ -98,7 +98,7 @@ function angleDifference(a, b) {
 
   return diff;
 }
-``  
+
 function shouldAddTrailPoint(ll) {
 
   if (
