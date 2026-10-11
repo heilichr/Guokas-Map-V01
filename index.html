@@ -44,12 +44,124 @@ const parcelsLayer=L.layerGroup().addTo(map); fetch('Parcels.geojson').then(r=>r
 const gpsLayer=L.layerGroup(); 
 const recordedTrailsLayer=L.layerGroup(); let liveTrail = null;
 const scoutingPinsLayer=L.layerGroup(); const scoutingModeLayer=L.layerGroup();
-let scoutingPins=[]; let scoutingModeEnabled=false; let userMarker=null; let initialGPSCentered=false; let isRecordingTrail=false; let activeTrailPoints=[]; let savedTrails=[]; const MIN_TRAIL_DISTANCE=5;
+let scoutingPins=[];
+let scoutingModeEnabled=false;
+let userMarker=null;
+let initialGPSCentered=false;
+let isRecordingTrail=false;
+let activeTrailPoints=[];
+let savedTrails=[];
+
+const MIN_TRAIL_DISTANCE = 5;
+const TURN_THRESHOLD = 15; // degrees
+
+let lastHeading = null;
 function saveTrails(){localStorage.setItem('recordedTrails',JSON.stringify(savedTrails));}
 function redrawTrails(){recordedTrailsLayer.clearLayers(); savedTrails.forEach((trail,index)=>{const p=L.polyline(trail.points,{color:'white',weight:4,opacity:.9}); p.bindPopup(`<b>Recorded Trail</b><br>${trail.date}<br><br><button onclick="deleteTrail(${index})">Delete Trail</button>`); recordedTrailsLayer.addLayer(p);});}
 function loadTrails(){const s=localStorage.getItem('recordedTrails'); if(!s)return; savedTrails=JSON.parse(s); redrawTrails();}
 window.deleteTrail=function(index){savedTrails.splice(index,1); saveTrails(); redrawTrails();};
-function shouldAddTrailPoint(ll){ if(activeTrailPoints.length===0)return true; const last=L.latLng(activeTrailPoints[activeTrailPoints.length-1][0],activeTrailPoints[activeTrailPoints.length-1][1]); return last.distanceTo(ll)>=MIN_TRAIL_DISTANCE; }
+
+function calculateHeading(from, to) {
+
+  const lat1 = from.lat * Math.PI / 180;
+  const lat2 = to.lat * Math.PI / 180;
+
+  const dLon =
+    (to.lng - from.lng) *
+    Math.PI / 180;
+
+  const y =
+    Math.sin(dLon) *
+    Math.cos(lat2);
+
+  const x =
+    Math.cos(lat1) *
+    Math.sin(lat2) -
+    Math.sin(lat1) *
+    Math.cos(lat2) *
+    Math.cos(dLon);
+
+  let bearing =
+    Math.atan2(y, x) *
+    180 / Math.PI;
+
+  return (bearing + 360) % 360;
+}
+
+function angleDifference(a, b) {
+
+  let diff =
+    Math.abs(a - b);
+
+  if (diff > 180)
+    diff = 360 - diff;
+
+  return diff;
+}
+``  
+function shouldAddTrailPoint(ll) {
+
+  if (
+    activeTrailPoints.length === 0
+  ) {
+    return true;
+  }
+
+  const last =
+    L.latLng(
+      activeTrailPoints[
+        activeTrailPoints.length - 1
+      ][0],
+      activeTrailPoints[
+        activeTrailPoints.length - 1
+      ][1]
+    );
+
+  const distance =
+    last.distanceTo(ll);
+
+  if (
+    distance >=
+    MIN_TRAIL_DISTANCE
+  ) {
+    return true;
+  }
+
+  if (
+    activeTrailPoints.length < 2
+  ) {
+    return false;
+  }
+
+  const previous =
+    L.latLng(
+      activeTrailPoints[
+        activeTrailPoints.length - 2
+      ][0],
+      activeTrailPoints[
+        activeTrailPoints.length - 2
+      ][1]
+    );
+
+  const oldHeading =
+    calculateHeading(
+      previous,
+      last
+    );
+
+  const newHeading =
+    calculateHeading(
+      last,
+      ll
+    );
+
+  return (
+    angleDifference(
+      oldHeading,
+      newHeading
+    ) >= TURN_THRESHOLD
+  );
+}
 function startTrailRecording() {
 
   activeTrailPoints = [];
