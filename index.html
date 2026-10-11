@@ -29,29 +29,127 @@ const wisconsinLeafOff=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_
 const wisconsinLeafOn=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer'});
 const esriImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
 waushara2025.addTo(map);
-const trailStyle={color:'#a3783e',weight:3}; const contoursWaterStyle={color:'#5891a4',weight:1,fillColor:'#4e9be8',fillOpacity:.4}; const contours1100Style={color:'#8f8f8f',weight:1}; const contours3Style={color:'#8f8f8f',weight:.75}; const standStyle={radius:5,fillColor:'yellow',color:'black',weight:1,fillOpacity:.9}; const parcelsStyle={color:'red',weight:.7,opacity:.8,fillOpacity:0};
+const trailStyle={color:'#a3783e',weight:3}; 
+const contoursWaterStyle={color:'#5891a4',weight:1,fillColor:'#4e9be8',fillOpacity:.4}; 
+const contours1100Style={color:'#8f8f8f',weight:1}; 
+const contours3Style={color:'#8f8f8f',weight:.75}; 
+const standStyle={radius:5,fillColor:'yellow',color:'black',weight:1,fillOpacity:.9}; 
+const parcelsStyle={color:'red',weight:.7,opacity:.8,fillOpacity:0};
 const trailsLayer=L.layerGroup().addTo(map); fetch('Trails.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:trailStyle}).addTo(trailsLayer));
 const contoursWaterLayer=L.layerGroup().addTo(map); fetch('contourswater.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contoursWaterStyle}).addTo(contoursWaterLayer));
 const contours1100Layer=L.layerGroup().addTo(map); fetch('contours1100.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contours1100Style}).addTo(contours1100Layer));
 const contours3Layer=L.layerGroup().addTo(map); fetch('contours3.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contours3Style}).addTo(contours3Layer));
 const standsLayer=L.layerGroup().addTo(map); fetch('Stands.geojson').then(r=>r.json()).then(data=>{L.geoJSON(data,{pointToLayer:(f,ll)=>{const m=L.circleMarker(ll,standStyle); if(f.properties.Name){m.bindTooltip(f.properties.Name,{permanent:true,direction:'top',offset:[0,-8],className:'stand-label'});} return m;}}).addTo(standsLayer);});
 const parcelsLayer=L.layerGroup().addTo(map); fetch('Parcels.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:parcelsStyle}).addTo(parcelsLayer));
-const gpsLayer=L.layerGroup(); const recordedTrailsLayer=L.layerGroup(); const scoutingPinsLayer=L.layerGroup(); const scoutingModeLayer=L.layerGroup();
+const gpsLayer=L.layerGroup(); 
+const recordedTrailsLayer=L.layerGroup(); let liveTrail = null;
+const scoutingPinsLayer=L.layerGroup(); const scoutingModeLayer=L.layerGroup();
 let scoutingPins=[]; let scoutingModeEnabled=false; let userMarker=null; let initialGPSCentered=false; let isRecordingTrail=false; let activeTrailPoints=[]; let savedTrails=[]; const MIN_TRAIL_DISTANCE=5;
 function saveTrails(){localStorage.setItem('recordedTrails',JSON.stringify(savedTrails));}
 function redrawTrails(){recordedTrailsLayer.clearLayers(); savedTrails.forEach((trail,index)=>{const p=L.polyline(trail.points,{color:'white',weight:4,opacity:.9}); p.bindPopup(`<b>Recorded Trail</b><br>${trail.date}<br><br><button onclick="deleteTrail(${index})">Delete Trail</button>`); recordedTrailsLayer.addLayer(p);});}
 function loadTrails(){const s=localStorage.getItem('recordedTrails'); if(!s)return; savedTrails=JSON.parse(s); redrawTrails();}
 window.deleteTrail=function(index){savedTrails.splice(index,1); saveTrails(); redrawTrails();};
 function shouldAddTrailPoint(ll){ if(activeTrailPoints.length===0)return true; const last=L.latLng(activeTrailPoints[activeTrailPoints.length-1][0],activeTrailPoints[activeTrailPoints.length-1][1]); return last.distanceTo(ll)>=MIN_TRAIL_DISTANCE; }
-function startTrailRecording(){activeTrailPoints=[]; isRecordingTrail=true; const b=document.getElementById('record-trail-btn'); b.innerText='Stop Recording'; b.classList.add('recording');}
-function stopTrailRecording(){ if(activeTrailPoints.length>1){savedTrails.push({date:new Date().toLocaleString(),points:activeTrailPoints}); saveTrails(); redrawTrails();} activeTrailPoints=[]; isRecordingTrail=false; const b=document.getElementById('record-trail-btn'); b.innerText='Record Trail'; b.classList.remove('recording');}
+function startTrailRecording() {
+
+  activeTrailPoints = [];
+
+  isRecordingTrail = true;
+
+  liveTrail = L.polyline([], {
+
+    color: "lime",
+
+    weight: 4,
+
+    opacity: 1.0
+
+  }).addTo(map);
+
+  const btn =
+    document.getElementById(
+      "record-trail-btn"
+    );
+
+  btn.innerText =
+    "Stop Recording";
+
+  btn.classList.add(
+    "recording"
+  );
+}
+function stopTrailRecording() {
+
+  if (
+    activeTrailPoints.length > 1
+  ) {
+
+    savedTrails.push({
+
+      date:
+        new Date()
+          .toLocaleString(),
+
+      points:
+        activeTrailPoints
+
+    });
+
+    saveTrails();
+
+    redrawTrails();
+  }
+
+  if (liveTrail) {
+
+    map.removeLayer(
+      liveTrail
+    );
+
+    liveTrail = null;
+  }
+
+  activeTrailPoints = [];
+
+  isRecordingTrail = false;
+
+  const btn =
+    document.getElementById(
+      "record-trail-btn"
+    );
+
+  btn.innerText =
+    "Record Trail";
+
+  btn.classList.remove(
+    "recording"
+  );
+}
 function saveScoutingPins(){localStorage.setItem('scoutingPins',JSON.stringify(scoutingPins));}
 function loadScoutingPins(){const s=localStorage.getItem('scoutingPins'); if(!s)return; scoutingPins=JSON.parse(s); scoutingPins.forEach(pin=>createScoutingPin(L.latLng(pin.lat,pin.lng),false));}
 function createScoutingPin(latlng,save=true){const m=L.circleMarker(latlng,{radius:8,fillColor:'#cc00ff',color:'#fff',weight:2,fillOpacity:.9}); m.bindPopup(`<b>Scouting Pin</b><br>Lat: ${latlng.lat.toFixed(6)}<br>Lon: ${latlng.lng.toFixed(6)}<br><br><button onclick="deleteScoutingPin(${latlng.lat},${latlng.lng})">Delete</button>`); scoutingPinsLayer.addLayer(m); if(save){scoutingPins.push({lat:latlng.lat,lng:latlng.lng}); saveScoutingPins();}}
 window.deleteScoutingPin=function(lat,lng){scoutingPins=scoutingPins.filter(p=>p.lat!==lat||p.lng!==lng); scoutingPinsLayer.clearLayers(); scoutingPins.forEach(pin=>createScoutingPin(L.latLng(pin.lat,pin.lng),false)); saveScoutingPins();};
 function startGPS(){map.off('locationfound',onLocationFound); map.off('locationerror',onLocationError); map.locate({watch:true,enableHighAccuracy:true}); map.on('locationfound',onLocationFound); map.on('locationerror',onLocationError);}
 function stopGPS(){map.stopLocate(); if(userMarker){map.removeLayer(userMarker); userMarker=null;} initialGPSCentered=false;}
-function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setView(ll,17); initialGPSCentered=true;} if(!userMarker){userMarker=L.circleMarker(ll,{radius:7,fillColor:'lime',color:'#fff',weight:2,fillOpacity:.95}).addTo(gpsLayer);} else userMarker.setLatLng(ll); if(isRecordingTrail&&shouldAddTrailPoint(ll)){activeTrailPoints.push([ll.lat,ll.lng]);}}
+function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setView(ll,17); initialGPSCentered=true;} if(!userMarker){userMarker=L.circleMarker(ll,{radius:7,fillColor:'lime',color:'#fff',weight:2,fillOpacity:.95}).addTo(gpsLayer);} else userMarker.setLatLng(ll); 
+ if (
+  isRecordingTrail &&
+  shouldAddTrailPoint(ll)
+) {
+
+  activeTrailPoints.push([
+    ll.lat,
+    ll.lng
+  ]);
+
+  if (liveTrail) {
+
+    liveTrail.addLatLng(
+      ll
+    );
+  }
+} 
+}                            
 function onLocationError(e){alert('GPS error: '+e.message);} 
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
 const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Mode':scoutingModeLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
