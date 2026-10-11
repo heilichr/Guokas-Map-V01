@@ -60,6 +60,22 @@
 
   display: none;
 }
+
+  #clear-trail-btn {
+  margin-left: 10px;
+  background: white;
+  color: purple;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#clear-trail-btn:hover {
+  background: #eeeeee;
+}
+
   
 </style>
 
@@ -71,6 +87,9 @@
 
 <div id="scouting-banner">
   SCOUTING MODE ACTIVE
+  <button id="clear-trail-btn">
+    Clear Trail
+  </button>
 </div>
   
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -179,9 +198,69 @@ const scoutingModeLayer = L.layerGroup();
 let scoutingModeEnabled = false;
   
   
-  let userMarker = null;
-  let initialGPSCentered = false;
-  let breadcrumbEnabled = false;
+ let userMarker = null;
+let initialGPSCentered = false;
+let breadcrumbEnabled = false;
+
+let breadcrumbPoints = [];
+
+const MIN_BREADCRUMB_DISTANCE = 5; // meters
+
+function saveBreadcrumbTrail() {
+
+  localStorage.setItem(
+    "breadcrumbTrail",
+    JSON.stringify(breadcrumbPoints)
+  );
+
+}
+
+function loadBreadcrumbTrail() {
+
+  const saved =
+    localStorage.getItem(
+      "breadcrumbTrail"
+    );
+
+  if (!saved) return;
+
+  breadcrumbPoints =
+    JSON.parse(saved);
+
+  breadcrumbLayer.setLatLngs(
+    breadcrumbPoints
+  );
+}
+
+function clearBreadcrumbTrail() {
+
+  breadcrumbPoints = [];
+
+  breadcrumbLayer.setLatLngs([]);
+
+  localStorage.removeItem(
+    "breadcrumbTrail"
+  );
+}
+
+function shouldAddBreadcrumb(latlng) {
+
+  if (breadcrumbPoints.length === 0)
+    return true;
+
+  const last =
+    breadcrumbPoints[
+      breadcrumbPoints.length - 1
+    ];
+
+  const lastLatLng =
+    L.latLng(last[0], last[1]);
+
+  return (
+    lastLatLng.distanceTo(latlng) >=
+    MIN_BREADCRUMB_DISTANCE
+  );
+}
 
 function saveScoutingPins() {
   localStorage.setItem(
@@ -266,14 +345,18 @@ window.deleteScoutingPin = function(lat, lng) {
 };
   
   function startGPS() {
-    map.locate({
-      watch: true,
-      enableHighAccuracy: true
-    });
 
-    map.on("locationfound", onLocationFound);
-    map.on("locationerror", onLocationError);
-  }
+  map.off("locationfound", onLocationFound);
+  map.off("locationerror", onLocationError);
+
+  map.locate({
+    watch: true,
+    enableHighAccuracy: true
+  });
+
+  map.on("locationfound", onLocationFound);
+  map.on("locationerror", onLocationError);
+}
 
   function stopGPS() {
     map.stopLocate();
@@ -314,9 +397,21 @@ fillOpacity: 0.95
    
     
     // Breadcrumb trail
-    if (breadcrumbEnabled) {
-      breadcrumbLayer.addLatLng(latlng);
-    }
+    if (
+  breadcrumbEnabled &&
+  shouldAddBreadcrumb(latlng)
+) {
+
+  breadcrumbLayer.addLatLng(latlng);
+
+  breadcrumbPoints.push([
+    latlng.lat,
+    latlng.lng
+  ]);
+
+  saveBreadcrumbTrail();
+
+}
   }
 
   function onLocationError(e) {
@@ -348,7 +443,8 @@ fillOpacity: 0.95
     "Parcels": parcelsLayer
   };
 
-  loadScoutingPins();
+ loadScoutingPins();
+loadBreadcrumbTrail();
   
 map.on('click', function(e) {
 
@@ -388,9 +484,10 @@ map.on('click', function(e) {
   }
 
   if (e.name === "Breadcrumb Trail") {
-    breadcrumbEnabled = false;
-    breadcrumbLayer.setLatLngs([]);
-  }
+
+  breadcrumbEnabled = false;
+
+}
 
   if (e.name === "Scouting Mode") {
 
@@ -401,6 +498,20 @@ map.on('click', function(e) {
     ).style.display = "none";
   }
 });
+document
+  .getElementById("clear-trail-btn")
+  .addEventListener("click", function() {
+
+    if (
+      confirm(
+        "Delete the saved breadcrumb trail?"
+      )
+    ) {
+      clearBreadcrumbTrail();
+    }
+
+  });
+
 </script>
 
 </body>
