@@ -55,7 +55,17 @@ let savedTrails=[];
 const MIN_TRAIL_DISTANCE = 5;
 const TURN_THRESHOLD = 15; // degrees
 
-
+ const SCOUT_TYPES = [
+    "",
+    "Rub",
+    "Scrape",
+    "Stand",
+    "Camera",
+    "Bedding Area",
+    "Food Source"
+];
+  
+  
 function saveTrails(){localStorage.setItem('recordedTrails',JSON.stringify(savedTrails));}
 function redrawTrails(){recordedTrailsLayer.clearLayers(); savedTrails.forEach((trail,index)=>{const p=L.polyline(trail.points,{color:'white',weight:4,opacity:.9}); p.bindPopup(`<b>Recorded Trail</b><br>${trail.date}<br><br><button onclick="deleteTrail(${index})">Delete Trail</button>`); recordedTrailsLayer.addLayer(p);});}
 function loadTrails(){const s=localStorage.getItem('recordedTrails'); if(!s)return; savedTrails=JSON.parse(s); redrawTrails();}
@@ -155,16 +165,7 @@ function shouldAddTrailPoint(ll) {
       ll
     );
 
-  const SCOUT_TYPES = [
-    "",
-    "Rub",
-    "Scrape",
-    "Stand",
-    "Camera",
-    "Bedding Area",
-    "Food Source"
-];
-  
+ 
   return (
     angleDifference(
       oldHeading,
@@ -250,22 +251,25 @@ function stopTrailRecording() {
 function saveScoutingPins(){localStorage.setItem('scoutingPins',JSON.stringify(scoutingPins));}
 function loadScoutingPins(){
 
-    const s =
-        localStorage.getItem(
-            'scoutingPins'
-        );
+   scoutingPins = JSON.parse(s);
 
-    if(!s) return;
+scoutingPins.forEach(pin => {
 
-    scoutingPins =
-        JSON.parse(s);
+    if(!pin.id)
+        pin.id = Date.now() + Math.random();
 
-    scoutingPins.forEach(
-        pin => createScoutingPin(
-            pin,
-            false
-        )
-    );
+    if(pin.type === undefined)
+        pin.type = "";
+
+    if(pin.notes === undefined)
+        pin.notes = "";
+
+    if(!pin.created)
+        pin.created = new Date().toISOString();
+
+    createScoutingPin(pin,false);
+});
+`
 }
 function createScoutingPin(
     pin,
@@ -317,7 +321,7 @@ function(id){
     ){
         return;
     }
-
+  map.closePopup();
     scoutingPins =
         scoutingPins.filter(
             p => p.id !== id
@@ -375,7 +379,7 @@ function getPinColor(type){
             return "#0066ff";
 
         case "Bedding Area":
-            return "#8000ff";
+    return "#6a0dad";
 
         case "Food Source":
             return "#8b4513";
@@ -444,9 +448,11 @@ function openPinEditor(
         </div>
     `;
 
-    marker.bindPopup(
-        html
-    ).openPopup();
+    marker.unbindPopup();
+
+marker.bindPopup(html);
+
+marker.openPopup();
 
     marker.once(
         "popupopen",
@@ -478,14 +484,13 @@ function openPinEditor(
                     saveScoutingPins();
                 };
 
-            notesBox.onchange =
-                () => {
+            notesBox.oninput = () => {
 
-                    pin.notes =
-                        notesBox.value;
+    pin.notes = notesBox.value;
 
-                    saveScoutingPins();
-                };
+    saveScoutingPins();
+
+};
         }
     );
 }
