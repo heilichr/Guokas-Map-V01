@@ -9,17 +9,19 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Prevent GitHub Pages caching -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+
+<!-- =========================================================
+     LEAFLET CSS
+     ========================================================= -->
 
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 
+
 <style>
+
   html, body {
     height: 100%;
     margin: 0;
@@ -30,228 +32,434 @@
     width: 100%;
   }
 
+
+  /* =========================================================
+     STAND LABELS
+     ========================================================= */
+
   .stand-label {
     font-size: 12px;
     font-weight: bold;
     color: black;
+
     background: rgba(255, 255, 255, 0.75);
+
     border: 1px solid #333;
     border-radius: 3px;
+
     padding: 1px 4px;
+
     white-space: nowrap;
   }
 
-  
 </style>
 
 </head>
+
 
 <body>
 
 <div id="map"></div>
 
+
+<!-- =========================================================
+     LEAFLET
+     ========================================================= -->
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<!-- =========================================================
+     ESRI LEAFLET
+     ========================================================= -->
+
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
+
 <script>
-  // ==========================================================
-  // INITIALIZE MAP (Plainfield default)
-  // ==========================================================
-  const map = L.map('map').setView([44.18125, -89.48712], 16);
+
 
   // ==========================================================
-  // BASEMAPS (NAIP REMOVED)
+  // INITIALIZE MAP
+  // ==========================================================
+
+  const map = L.map('map').setView(
+    [44.18125, -89.48712],
+    16
+  );
+
+
+  // ==========================================================
+  // BASEMAP 1
+  //
+  // WAUSHARA COUNTY 2025 WROC
+  //
+  // LEAF-OFF
+  //
+  // 3-inch pixel imagery
+  // April-May 2025
   // ==========================================================
 
   const waushara2025 = L.esri.imageMapLayer({
-    url: 'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer',
-    attribution: '2025 imagery © Waushara County / WROC / Ayres Associates'
+
+    url:
+      'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer',
+
+    attribution:
+      '2025 imagery © Waushara County / WROC / Ayres Associates'
+
   });
+
+
+  // ==========================================================
+  // BASEMAP 2
+  //
+  // WISCONSIN DNR LATEST LEAF-OFF
+  // ==========================================================
 
   const wisconsinLeafOff = L.esri.imageMapLayer({
-    url: 'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer',
-    attribution: 'Imagery © Wisconsin DNR / WROC'
+
+    url:
+      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer',
+
+    attribution:
+      'Imagery © Wisconsin DNR / WROC'
+
   });
+
+
+  // ==========================================================
+  // BASEMAP 3
+  //
+  // WISCONSIN DNR LEAF-ON
+  //
+  // Current DNR statewide leaf-on service.
+  //
+  // 2022 USDA NAIP
+  // 0.6-meter pixel resolution
+  // ==========================================================
 
   const wisconsinLeafOn = L.esri.imageMapLayer({
-    url: 'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer',
-    attribution: 'Imagery © Wisconsin DNR / USDA NAIP'
+
+    url:
+      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer',
+
+    attribution:
+      'Imagery © Wisconsin DNR / USDA NAIP'
+
   });
 
+
+  // ==========================================================
+  // BASEMAP 4
+  //
+  // ESRI WORLD IMAGERY
+  //
+  // Your original basemap
+  // ==========================================================
+
   const esriImagery = L.tileLayer(
+
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { attribution: 'Tiles © Esri', maxZoom: 19 }
+
+    {
+      attribution: 'Tiles © Esri',
+      maxZoom: 19
+    }
+
   );
 
-  // Default basemap
+
+  // ==========================================================
+  // DEFAULT BASEMAP
+  //
+  // Start with the high-resolution 2025
+  // Waushara County imagery.
+  // ==========================================================
+
   waushara2025.addTo(map);
+
 
   // ==========================================================
   // STYLE DEFINITIONS
   // ==========================================================
 
-  const trailStyle = { color: "#a3783e", weight: 3, opacity: 1 };
-  const contoursWaterStyle = { color: "#5891a4", weight: 1, opacity: 1, fillColor: "#4e9be8", fillOpacity: 0.4 };
-  const contours1100Style = { color: "#8f8f8f", weight: 1, opacity: 1 };
-  const contours3Style = { color: "#8f8f8f", weight: 0.75, opacity: 0.9 };
-  const standStyle = { radius: 5, fillColor: "yellow", color: "black", weight: 1, fillOpacity: 0.9 };
-  const parcelsStyle = { color: "red", weight: 0.7, opacity: 0.8, fillOpacity: 0 };
+  const trailStyle = {
+
+    color: "#a3783e",
+    weight: 3,
+    opacity: 1
+
+  };
+
+
+  const contoursWaterStyle = {
+
+    color: "#5891a4",
+
+    weight: 1,
+
+    opacity: 1,
+
+    fillColor: "#4e9be8",
+
+    fillOpacity: 0.4
+
+  };
+
+
+  const contours1100Style = {
+
+    color: "#8f8f8f",
+
+    weight: 1,
+
+    opacity: 1
+
+  };
+
+
+  const contours3Style = {
+
+    color: "#8f8f8f",
+
+    weight: 0.75,
+
+    opacity: 0.9
+
+  };
+
+
+  const standStyle = {
+
+    radius: 5,
+
+    fillColor: "yellow",
+
+    color: "black",
+
+    weight: 1,
+
+    fillOpacity: 0.9
+
+  };
+
+
+  const parcelsStyle = {
+
+    color: "red",
+
+    weight: 0.7,
+
+    opacity: 0.8,
+
+    fillOpacity: 0
+
+  };
+
 
   // ==========================================================
-  // LOAD GEOJSON LAYERS
+  // TRAILS
   // ==========================================================
 
   const trailsLayer = L.layerGroup().addTo(map);
-  fetch('Trails.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: trailStyle }).addTo(trailsLayer));
+
+  fetch('Trails.geojson')
+
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+
+        style: trailStyle
+
+      }).addTo(trailsLayer)
+
+    );
+
+
+  // ==========================================================
+  // CONTOURS & WATER
+  // ==========================================================
 
   const contoursWaterLayer = L.layerGroup().addTo(map);
-  fetch('contourswater.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: contoursWaterStyle }).addTo(contoursWaterLayer));
+
+  fetch('contourswater.geojson')
+
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+
+        style: contoursWaterStyle
+
+      }).addTo(contoursWaterLayer)
+
+    );
+
+
+  // ==========================================================
+  // 1100' CONTOURS
+  // ==========================================================
 
   const contours1100Layer = L.layerGroup().addTo(map);
-  fetch('contours1100.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: contours1100Style }).addTo(contours1100Layer));
+
+  fetch('contours1100.geojson')
+
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+
+        style: contours1100Style
+
+      }).addTo(contours1100Layer)
+
+    );
+
+
+  // ==========================================================
+  // 3' CONTOURS
+  // ==========================================================
 
   const contours3Layer = L.layerGroup().addTo(map);
-  fetch('contours3.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: contours3Style }).addTo(contours3Layer));
+
+  fetch('contours3.geojson')
+
+    .then(r => r.json())
+
+    .then(d =>
+
+      L.geoJSON(d, {
+
+        style: contours3Style
+
+      }).addTo(contours3Layer)
+
+    );
+
+
+  // ==========================================================
+  // STANDS
+  // ==========================================================
 
   const standsLayer = L.layerGroup().addTo(map);
-  fetch('Stands.geojson').then(r => r.json()).then(data => {
-    L.geoJSON(data, {
-      pointToLayer: (feature, latlng) => {
-        const marker = L.circleMarker(latlng, standStyle);
-        const label = feature.properties.Name;
-        if (label) {
-          marker.bindTooltip(label, {
-            permanent: true,
-            direction: "top",
-            offset: [0, -8],
-            className: "stand-label"
-          });
+
+  fetch('Stands.geojson')
+
+    .then(r => r.json())
+
+    .then(data => {
+
+      L.geoJSON(data, {
+
+        pointToLayer: (feature, latlng) => {
+
+          const marker =
+            L.circleMarker(latlng, standStyle);
+
+          const label =
+            feature.properties.Name;
+
+          if (label) {
+
+            marker.bindTooltip(label, {
+
+              permanent: true,
+
+              direction: "top",
+
+              offset: [0, -8],
+
+              className: "stand-label"
+
+            });
+
+          }
+
+          return marker;
+
         }
-        return marker;
-      }
-    }).addTo(standsLayer);
-  });
 
-  const parcelsLayer = L.layerGroup().addTo(map);
-  fetch('Parcels.geojson').then(r => r.json()).then(d => L.geoJSON(d, { style: parcelsStyle }).addTo(parcelsLayer));
+      }).addTo(standsLayer);
 
-  // ==========================================================
-  // GPS OVERLAY + BREADCRUMB TRAIL
-  // ==========================================================
-
-  const gpsLayer = L.layerGroup();
-  const breadcrumbLayer = L.polyline([], {
-    color: "white",
-    weight: 3,
-    opacity: 0.9
-  });
-
-  let userMarker = null;
-  let initialGPSCentered = false;
-  let breadcrumbEnabled = false;
-
-  function startGPS() {
-    map.locate({
-      watch: true,
-      enableHighAccuracy: true
     });
 
-    map.on("locationfound", onLocationFound);
-    map.on("locationerror", onLocationError);
-  }
 
-  function stopGPS() {
-    map.stopLocate();
-    map.off("locationfound", onLocationFound);
-    map.off("locationerror", onLocationError);
+  // ==========================================================
+  // PARCELS
+  // ==========================================================
 
-    initialGPSCentered = false;
+  const parcelsLayer = L.layerGroup().addTo(map);
 
-    if (userMarker) {
-      map.removeLayer(userMarker);
-      userMarker = null;
-    }
-    
-  }
+  fetch('Parcels.geojson')
 
-  function onLocationFound(e) {
-    const latlng = e.latlng;
+    .then(r => r.json())
 
-    // Center map only once
-    if (!initialGPSCentered) {
-      map.setView(latlng, 17);
-      initialGPSCentered = true;
-    }
+    .then(d =>
 
-    // Location dot (true blue, smaller)
-    if (!userMarker) {
-      userMarker = L.circleMarker(latlng, {
-radius: 7,
-fillColor: "lime",
-color: "#ffffff",
-weight: 2,
-fillOpacity: 0.95
-}).addTo(gpsLayer);
-    } else {
-      userMarker.setLatLng(latlng);
-    }
+      L.geoJSON(d, {
 
-   
-    
-    // Breadcrumb trail
-    if (breadcrumbEnabled) {
-      breadcrumbLayer.addLatLng(latlng);
-    }
-  }
+        style: parcelsStyle
 
-  function onLocationError(e) {
-    alert("GPS error: " + e.message);
-  }
+      }).addTo(parcelsLayer)
+
+    );
 
 
   // ==========================================================
-  // LAYER CONTROL (NAIP REMOVED)
+  // LAYER CONTROL
   // ==========================================================
 
-  const baseMaps = {
-    "2025 Waushara County WROC — Leaf-Off": waushara2025,
-    "Wisconsin DNR — Latest Leaf-Off": wisconsinLeafOff,
-    "Wisconsin DNR — Leaf-On": wisconsinLeafOn,
-    "ESRI World Imagery": esriImagery
-  };
+  L.control.layers(
 
-  const overlays = {
-    "Show My Location": gpsLayer,
-    "Breadcrumb Trail": breadcrumbLayer,
-    "Trails": trailsLayer,
-    "Contours & Water": contoursWaterLayer,
-    "1100' Contours": contours1100Layer,
-    "3' Contours": contours3Layer,
-    "Stands": standsLayer,
-    "Parcels": parcelsLayer
-  };
+    {
 
-  const layerControl = L.control.layers(baseMaps, overlays, { collapsed: true }).addTo(map);
+      "2025 Waushara County WROC — Leaf-Off":
+        waushara2025,
 
-  // GPS toggle
-  map.on('overlayadd', function(e) {
-    if (e.name === "Show My Location") {
-      startGPS();
-    }
-    if (e.name === "Breadcrumb Trail") {
-      breadcrumbEnabled = true;
-    }
-  });
+      "Wisconsin DNR — Latest Leaf-Off":
+        wisconsinLeafOff,
 
-  map.on('overlayremove', function(e) {
-    if (e.name === "Show My Location") {
-      stopGPS();
+      "Wisconsin DNR — Leaf-On":
+        wisconsinLeafOn,
+
+      "ESRI World Imagery":
+        esriImagery
+
+    },
+
+    {
+
+      "Trails":
+        trailsLayer,
+
+      "Contours & Water":
+        contoursWaterLayer,
+
+      "1100' Contours":
+        contours1100Layer,
+
+      "3' Contours":
+        contours3Layer,
+
+      "Stands":
+        standsLayer,
+
+      "Parcels":
+        parcelsLayer
+
+    },
+
+    {
+      collapsed: true
     }
-    if (e.name === "Breadcrumb Trail") {
-      breadcrumbEnabled = false;
-      breadcrumbLayer.setLatLngs([]); // clear trail
-    }
-  });
+
+  ).addTo(map);
+
 
 </script>
 
