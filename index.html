@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <title>Waushara County Imagery with Trails, Stands, Contours, and Parcels</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+
+
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
@@ -22,7 +22,18 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 <div id="scouting-banner">SCOUTING MODE ACTIVE</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
-<script>
+
+ <script>
+console.log(
+    "localStorage test:",
+    localStorage.getItem("test")
+);
+localStorage.setItem(
+    "test",
+    "hello"
+);
+
+  
 const map=L.map('map').setView([44.18125,-89.48712],16);
 const waushara2025=L.esri.imageMapLayer({url:'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer'});
 const wisconsinLeafOff=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer'});
