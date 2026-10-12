@@ -155,6 +155,16 @@ function shouldAddTrailPoint(ll) {
       ll
     );
 
+  const SCOUT_TYPES = [
+    "",
+    "Rub",
+    "Scrape",
+    "Stand",
+    "Camera",
+    "Bedding Area",
+    "Food Source"
+];
+  
   return (
     angleDifference(
       oldHeading,
@@ -238,9 +248,93 @@ function stopTrailRecording() {
   );
 }
 function saveScoutingPins(){localStorage.setItem('scoutingPins',JSON.stringify(scoutingPins));}
-function loadScoutingPins(){const s=localStorage.getItem('scoutingPins'); if(!s)return; scoutingPins=JSON.parse(s); scoutingPins.forEach(pin=>createScoutingPin(L.latLng(pin.lat,pin.lng),false));}
-function createScoutingPin(latlng,save=true){const m=L.circleMarker(latlng,{radius:8,fillColor:'#cc00ff',color:'#fff',weight:2,fillOpacity:.9}); m.bindPopup(`<b>Scouting Pin</b><br>Lat: ${latlng.lat.toFixed(6)}<br>Lon: ${latlng.lng.toFixed(6)}<br><br><button onclick="deleteScoutingPin(${latlng.lat},${latlng.lng})">Delete</button>`); scoutingPinsLayer.addLayer(m); if(save){scoutingPins.push({lat:latlng.lat,lng:latlng.lng}); saveScoutingPins();}}
-window.deleteScoutingPin=function(lat,lng){scoutingPins=scoutingPins.filter(p=>p.lat!==lat||p.lng!==lng); scoutingPinsLayer.clearLayers(); scoutingPins.forEach(pin=>createScoutingPin(L.latLng(pin.lat,pin.lng),false)); saveScoutingPins();};
+function loadScoutingPins(){
+
+    const s =
+        localStorage.getItem(
+            'scoutingPins'
+        );
+
+    if(!s) return;
+
+    scoutingPins =
+        JSON.parse(s);
+
+    scoutingPins.forEach(
+        pin => createScoutingPin(
+            pin,
+            false
+        )
+    );
+}
+function createScoutingPin(
+    pin,
+    save=true
+){
+
+    const marker =
+        L.circleMarker(
+            [pin.lat,pin.lng],
+            {
+                radius:8,
+                fillColor:
+                    getPinColor(
+                        pin.type
+                    ),
+                color:"#fff",
+                weight:2,
+                fillOpacity:.9
+            }
+        );
+
+    marker.on(
+        "click",
+        () => openPinEditor(
+            pin,
+            marker
+        )
+    );
+
+    scoutingPinsLayer.addLayer(
+        marker
+    );
+
+    if(save){
+
+        scoutingPins.push(pin);
+
+        saveScoutingPins();
+
+    }
+}
+window.deleteScoutingPin =
+function(id){
+
+    if(
+        !confirm(
+            "Delete this scouting point?"
+        )
+    ){
+        return;
+    }
+
+    scoutingPins =
+        scoutingPins.filter(
+            p => p.id !== id
+        );
+
+    scoutingPinsLayer.clearLayers();
+
+    scoutingPins.forEach(
+        pin =>
+        createScoutingPin(
+            pin,
+            false
+        )
+    );
+
+    saveScoutingPins();
+};
 function startGPS(){map.off('locationfound',onLocationFound); map.off('locationerror',onLocationError); map.locate({watch:true,enableHighAccuracy:true}); map.on('locationfound',onLocationFound); map.on('locationerror',onLocationError);}
 function stopGPS(){map.stopLocate(); if(userMarker){map.removeLayer(userMarker); userMarker=null;} initialGPSCentered=false;}
 function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setView(ll,17); initialGPSCentered=true;} if(!userMarker){userMarker=L.circleMarker(ll,{radius:7,fillColor:'lime',color:'#fff',weight:2,fillOpacity:.95}).addTo(gpsLayer);} else userMarker.setLatLng(ll); 
@@ -263,10 +357,168 @@ function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setVi
 } 
 }                            
 function onLocationError(e){alert('GPS error: '+e.message);} 
+
+function getPinColor(type){
+
+    switch(type){
+
+        case "Rub":
+            return "#ff8800";
+
+        case "Scrape":
+            return "#ff0000";
+
+        case "Stand":
+            return "#00aa00";
+
+        case "Camera":
+            return "#0066ff";
+
+        case "Bedding Area":
+            return "#8000ff";
+
+        case "Food Source":
+            return "#8b4513";
+
+        default:
+            return "#cc00ff";
+    }
+}
+
+function openPinEditor(
+    pin,
+    marker
+){
+
+    let options =
+        SCOUT_TYPES.map(
+            t =>
+            `<option value="${t}"
+             ${pin.type===t?"selected":""}>
+             ${t}
+             </option>`
+        ).join("");
+
+    const html = `
+        <div>
+
+            <b>Scouting Point</b>
+
+            <br><br>
+
+            <b>Created:</b><br>
+            ${new Date(
+                pin.created
+            ).toLocaleString()}
+
+            <br><br>
+
+            <b>Type:</b><br>
+
+            <select
+                id="type-${pin.id}"
+            >
+                ${options}
+            </select>
+
+            <br><br>
+
+            <b>Notes:</b><br>
+
+            <textarea
+                id="notes-${pin.id}"
+                rows="4"
+                style="width:100%;"
+            >${pin.notes}</textarea>
+
+            <br><br>
+
+            <button
+                onclick="
+                deleteScoutingPin(
+                    ${pin.id}
+                )">
+                Delete Point
+            </button>
+
+        </div>
+    `;
+
+    marker.bindPopup(
+        html
+    ).openPopup();
+
+    marker.once(
+        "popupopen",
+        () => {
+
+            const typeBox =
+                document.getElementById(
+                    `type-${pin.id}`
+                );
+
+            const notesBox =
+                document.getElementById(
+                    `notes-${pin.id}`
+                );
+
+            typeBox.onchange =
+                () => {
+
+                    pin.type =
+                        typeBox.value;
+
+                    marker.setStyle({
+                        fillColor:
+                            getPinColor(
+                                pin.type
+                            )
+                    });
+
+                    saveScoutingPins();
+                };
+
+            notesBox.onchange =
+                () => {
+
+                    pin.notes =
+                        notesBox.value;
+
+                    saveScoutingPins();
+                };
+        }
+    );
+}
+  
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
 const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Mode':scoutingModeLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
 loadScoutingPins(); loadTrails();
-map.on('click',e=>{if(scoutingModeEnabled)createScoutingPin(e.latlng);});
+map.on(
+    "click",
+    e => {
+
+        if(!scoutingModeEnabled)
+            return;
+
+        createScoutingPin(
+            {
+                id: Date.now(),
+
+                lat: e.latlng.lat,
+
+                lng: e.latlng.lng,
+
+                type: "",
+
+                notes: "",
+
+                created:
+                    new Date()
+                    .toISOString()
+            }
+        );
+    }
+);
 L.control.layers(baseMaps,overlays,{collapsed:true}).addTo(map);
 map.on('overlayadd',e=>{if(e.name==='Show My Location')startGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=true; document.getElementById('scouting-banner').style.display='block';}});
 map.on('overlayremove',e=>{if(e.name==='Show My Location')stopGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=false; document.getElementById('scouting-banner').style.display='none';}});
