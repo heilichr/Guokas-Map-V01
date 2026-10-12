@@ -276,7 +276,11 @@ function saveScoutingPins(){
 }
 
 function loadScoutingPins(){
-
+alert(
+    localStorage.getItem(
+        "scoutingPins"
+    )
+);
     const s =
         localStorage.getItem(
             'scoutingPins'
