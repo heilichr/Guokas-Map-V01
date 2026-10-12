@@ -259,7 +259,22 @@ function stopTrailRecording() {
     "recording"
   );
 }
-function saveScoutingPins(){localStorage.setItem('scoutingPins',JSON.stringify(scoutingPins));}
+function saveScoutingPins(){
+
+    localStorage.setItem(
+        'scoutingPins',
+        JSON.stringify(scoutingPins)
+    );
+
+    console.log(
+        JSON.stringify(
+            scoutingPins,
+            null,
+            2
+        )
+    );
+}
+
 function loadScoutingPins(){
 
     const s =
