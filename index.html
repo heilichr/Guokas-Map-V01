@@ -251,25 +251,39 @@ function stopTrailRecording() {
 function saveScoutingPins(){localStorage.setItem('scoutingPins',JSON.stringify(scoutingPins));}
 function loadScoutingPins(){
 
-   scoutingPins = JSON.parse(s);
+    const s =
+        localStorage.getItem(
+            'scoutingPins'
+        );
 
-scoutingPins.forEach(pin => {
+    if(!s) return;
 
-    if(!pin.id)
-        pin.id = Date.now() + Math.random();
+    scoutingPins =
+        JSON.parse(s);
 
-    if(pin.type === undefined)
-        pin.type = "";
+    scoutingPins.forEach(pin => {
 
-    if(pin.notes === undefined)
-        pin.notes = "";
+        if(!pin.id)
+            pin.id =
+                Date.now() +
+                Math.random();
 
-    if(!pin.created)
-        pin.created = new Date().toISOString();
+        if(pin.type === undefined)
+            pin.type = "";
 
-    createScoutingPin(pin,false);
-});
-`
+        if(pin.notes === undefined)
+            pin.notes = "";
+
+        if(!pin.created)
+            pin.created =
+                new Date()
+                .toISOString();
+
+        createScoutingPin(
+            pin,
+            false
+        );
+    });
 }
 function createScoutingPin(
     pin,
@@ -454,7 +468,7 @@ marker.bindPopup(html);
 
 marker.openPopup();
 
-    marker.once(
+    marker.on(
         "popupopen",
         () => {
 
