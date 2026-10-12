@@ -491,28 +491,7 @@ setTimeout(() => {
 
     if(typeBox){
 
-        typeBox.onchange = () => {
-
-            pin.type = typeBox.value;
-
-            marker.setStyle({
-                fillColor:
-                    getPinColor(pin.type)
-            });
-
-            saveScoutingPins();
-        };
-    }
-
-    if(notesBox){
-
-        notesBox.oninput = () => {
-
-            pin.notes = notesBox.value;
-
-            saveScoutingPins();
-        };
-    }
+      
 
 },50);
 
