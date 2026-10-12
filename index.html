@@ -491,28 +491,27 @@ marker.openPopup();
                     `notes-${pin.id}`
                 );
 
-            typeBox.onchange =
-                () => {
+            typeBox.onchange = () => {
 
-                    pin.type =
-                        typeBox.value;
+    const storedPin =
+        scoutingPins.find(
+            p => p.id === pin.id
+        );
 
-                    marker.setStyle({
-                        fillColor:
-                            getPinColor(
-                                pin.type
-                            )
-                    });
+    if(storedPin){
+        storedPin.type =
+            typeBox.value;
+    }
 
-                    saveScoutingPins();
-                };
+    pin.type =
+        typeBox.value;
 
-            notesBox.oninput = () => {
-
-    pin.notes = notesBox.value;
+    marker.setStyle({
+        fillColor:
+            getPinColor(pin.type)
+    });
 
     saveScoutingPins();
-
 };
         }
     );
