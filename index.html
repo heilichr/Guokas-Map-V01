@@ -412,6 +412,8 @@ function getPinColor(type){
     }
 }
 
+// function openPinEditor
+
 function openPinEditor(
     pin,
     marker
@@ -471,55 +473,56 @@ function openPinEditor(
         </div>
     `;
 
-   marker.unbindPopup();
+    marker.unbindPopup();
 
-marker.bindPopup(html);
+    marker.bindPopup(html);
 
-marker.openPopup();
+    marker.openPopup();
 
-setTimeout(() => {
+    setTimeout(() => {
 
-    const typeBox =
-        document.getElementById(
-            `type-${pin.id}`
-        );
+        const typeBox =
+            document.getElementById(
+                `type-${pin.id}`
+            );
 
-    const notesBox =
-        document.getElementById(
-            `notes-${pin.id}`
-        );
+        const notesBox =
+            document.getElementById(
+                `notes-${pin.id}`
+            );
 
-    if(typeBox){
-
-      
-
-},50);
+        if(typeBox){
 
             typeBox.onchange = () => {
 
-    const storedPin =
-        scoutingPins.find(
-            p => p.id === pin.id
-        );
+                pin.type =
+                    typeBox.value;
 
-    if(storedPin){
-        storedPin.type =
-            typeBox.value;
-    }
+                marker.setStyle({
+                    fillColor:
+                        getPinColor(
+                            pin.type
+                        )
+                });
 
-    pin.type =
-        typeBox.value;
-
-    marker.setStyle({
-        fillColor:
-            getPinColor(pin.type)
-    });
-
-    saveScoutingPins();
-};
+                saveScoutingPins();
+            };
         }
-    );
+
+        if(notesBox){
+
+            notesBox.oninput = () => {
+
+                pin.notes =
+                    notesBox.value;
+
+                saveScoutingPins();
+            };
+        }
+
+    },50);
 }
+//  end openPinEditor
   
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
 const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Mode':scoutingModeLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
