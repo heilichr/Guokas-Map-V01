@@ -477,9 +477,9 @@ marker.bindPopup(html);
 
 marker.openPopup();
 
-    marker.once(
-        "popupopen",
-        () => {
+    marker.on(
+    "popupopen",
+    () => {
 
             const typeBox =
                 document.getElementById(
