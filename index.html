@@ -270,8 +270,8 @@ function saveScoutingPins(){
     );
 
     alert(
-        JSON.stringify(
-            scoutingPins
+        localStorage.getItem(
+            'scoutingPins'
         )
     );
 }
