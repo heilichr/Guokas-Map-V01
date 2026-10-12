@@ -2,466 +2,553 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-
-<title>
-  Waushara County Imagery with Trails, Stands, Contours, and Parcels
-</title>
-
+<title>Waushara County Imagery with Trails, Stands, Contours, and Parcels</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-<!-- =========================================================
-     LEAFLET CSS
-     ========================================================= -->
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-
-  #map {
-    height: 100%;
-    width: 100%;
-  }
-
-
-  /* =========================================================
-     STAND LABELS
-     ========================================================= */
-
-  .stand-label {
-    font-size: 12px;
-    font-weight: bold;
-    color: black;
-
-    background: rgba(255, 255, 255, 0.75);
-
-    border: 1px solid #333;
-    border-radius: 3px;
-
-    padding: 1px 4px;
-
-    white-space: nowrap;
-  }
-
+html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
+.stand-label{font-size:12px;font-weight:bold;color:black;background:rgba(255,255,255,.75);border:1px solid #333;border-radius:3px;padding:1px 4px;white-space:nowrap;}
+#scouting-banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(128,0,128,.85);color:white;font-weight:bold;font-size:14px;padding:6px 12px;border-radius:4px;z-index:1000;display:none;}
+#record-trail-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;padding:12px 20px;font-size:16px;font-weight:bold;border:none;border-radius:8px;background:#2e8b57;color:white;cursor:pointer;}
+#record-trail-btn.recording{background:#cc0000;}
 </style>
-
 </head>
-
-
 <body>
-
 <div id="map"></div>
-
-
-<!-- =========================================================
-     LEAFLET
-     ========================================================= -->
-
+<button id="record-trail-btn">Record Trail</button>
+<div id="scouting-banner">SCOUTING MODE ACTIVE</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-
-<!-- =========================================================
-     ESRI LEAFLET
-     ========================================================= -->
-
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
+ <script>
+  
+const map=L.map('map').setView([44.18125,-89.48712],16);
+const waushara2025=L.esri.imageMapLayer({url:'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer'});
+const wisconsinLeafOff=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer'});
+const wisconsinLeafOn=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer'});
+const esriImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+waushara2025.addTo(map);
+const trailStyle={color:'#a3783e',weight:3}; 
+const contoursWaterStyle={color:'#5891a4',weight:1,fillColor:'#4e9be8',fillOpacity:.4}; 
+const contours1100Style={color:'#8f8f8f',weight:1}; 
+const contours3Style={color:'#8f8f8f',weight:.75}; 
+const standStyle={radius:5,fillColor:'yellow',color:'black',weight:1,fillOpacity:.9}; 
+const parcelsStyle={color:'red',weight:.7,opacity:.8,fillOpacity:0};
+const trailsLayer=L.layerGroup().addTo(map); fetch('Trails.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:trailStyle}).addTo(trailsLayer));
+const contoursWaterLayer=L.layerGroup().addTo(map); fetch('contourswater.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contoursWaterStyle}).addTo(contoursWaterLayer));
+const contours1100Layer=L.layerGroup().addTo(map); fetch('contours1100.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contours1100Style}).addTo(contours1100Layer));
+const contours3Layer=L.layerGroup().addTo(map); fetch('contours3.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:contours3Style}).addTo(contours3Layer));
+const standsLayer=L.layerGroup().addTo(map); fetch('Stands.geojson').then(r=>r.json()).then(data=>{L.geoJSON(data,{pointToLayer:(f,ll)=>{const m=L.circleMarker(ll,standStyle); if(f.properties.Name){m.bindTooltip(f.properties.Name,{permanent:true,direction:'top',offset:[0,-8],className:'stand-label'});} return m;}}).addTo(standsLayer);});
+const parcelsLayer=L.layerGroup().addTo(map); fetch('Parcels.geojson').then(r=>r.json()).then(d=>L.geoJSON(d,{style:parcelsStyle}).addTo(parcelsLayer));
+const gpsLayer=L.layerGroup(); 
+const recordedTrailsLayer=L.layerGroup(); let liveTrail = null;
+const scoutingPinsLayer=L.layerGroup();
+const scoutingModeLayer=L.layerGroup();
+let scoutingPins=[];
+let scoutingModeEnabled=false;
+let userMarker=null;
+let initialGPSCentered=false;
+let isRecordingTrail=false;
+let activeTrailPoints=[];
+let savedTrails=[];
 
-<script>
+const MIN_TRAIL_DISTANCE = 5;
+const TURN_THRESHOLD = 15; // degrees
 
+ const SCOUT_TYPES = [
+    "",
+    "Rub",
+    "Scrape",
+    "Stand",
+    "Camera",
+    "Bedding Area",
+    "Food Source"
+];
+  
+  
+function saveTrails(){localStorage.setItem('recordedTrails',JSON.stringify(savedTrails));}
+function redrawTrails(){recordedTrailsLayer.clearLayers(); savedTrails.forEach((trail,index)=>{const p=L.polyline(trail.points,{color:'white',weight:4,opacity:.9}); p.bindPopup(`<b>Recorded Trail</b><br>${trail.date}<br><br><button onclick="deleteTrail(${index})">Delete Trail</button>`); recordedTrailsLayer.addLayer(p);});}
+function loadTrails(){const s=localStorage.getItem('recordedTrails'); if(!s)return; savedTrails=JSON.parse(s); redrawTrails();}
+window.deleteTrail=function(index){savedTrails.splice(index,1); saveTrails(); redrawTrails();};
 
-  // ==========================================================
-  // INITIALIZE MAP
-  // ==========================================================
+function calculateHeading(from, to) {
 
-  const map = L.map('map').setView(
-    [44.18125, -89.48712],
-    16
+  const lat1 = from.lat * Math.PI / 180;
+  const lat2 = to.lat * Math.PI / 180;
+
+  const dLon =
+    (to.lng - from.lng) *
+    Math.PI / 180;
+
+  const y =
+    Math.sin(dLon) *
+    Math.cos(lat2);
+
+  const x =
+    Math.cos(lat1) *
+    Math.sin(lat2) -
+    Math.sin(lat1) *
+    Math.cos(lat2) *
+    Math.cos(dLon);
+
+  let bearing =
+    Math.atan2(y, x) *
+    180 / Math.PI;
+
+  return (bearing + 360) % 360;
+}
+
+function angleDifference(a, b) {
+
+  let diff =
+    Math.abs(a - b);
+
+  if (diff > 180)
+    diff = 360 - diff;
+
+  return diff;
+}
+
+function shouldAddTrailPoint(ll) {
+  if (
+    activeTrailPoints.length === 0
+  ) {
+    return true;
+  }
+
+  const last =
+    L.latLng(
+      activeTrailPoints[
+        activeTrailPoints.length - 1
+      ][0],
+      activeTrailPoints[
+        activeTrailPoints.length - 1
+      ][1]
+    );
+
+  const distance =
+    last.distanceTo(ll);
+
+  if (
+    distance >=
+    MIN_TRAIL_DISTANCE
+  ) {
+    return true;
+  }
+
+  if (
+    activeTrailPoints.length < 2
+  ) {
+    return false;
+  }
+
+  const previous =
+    L.latLng(
+      activeTrailPoints[
+        activeTrailPoints.length - 2
+      ][0],
+      activeTrailPoints[
+        activeTrailPoints.length - 2
+      ][1]
+    );
+
+  const oldHeading =
+    calculateHeading(
+      previous,
+      last
+    );
+
+  const newHeading =
+    calculateHeading(
+      last,
+      ll
+    );
+
+ 
+  return (
+    angleDifference(
+      oldHeading,
+      newHeading
+    ) >= TURN_THRESHOLD
   );
+}
+function startTrailRecording() {
 
+  activeTrailPoints = [];
 
-  // ==========================================================
-  // BASEMAP 1
-  //
-  // WAUSHARA COUNTY 2025 WROC
-  //
-  // LEAF-OFF
-  //
-  // 3-inch pixel imagery
-  // April-May 2025
-  // ==========================================================
+  isRecordingTrail = true;
 
-  const waushara2025 = L.esri.imageMapLayer({
+  liveTrail = L.polyline([], {
 
-    url:
-      'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer',
+    color: "lime",
 
-    attribution:
-      '2025 imagery © Waushara County / WROC / Ayres Associates'
+    weight: 4,
 
-  });
+    opacity: 1.0
 
+  }).addTo(map);
 
-  // ==========================================================
-  // BASEMAP 2
-  //
-  // WISCONSIN DNR LATEST LEAF-OFF
-  // ==========================================================
+  const btn =
+    document.getElementById(
+      "record-trail-btn"
+    );
 
-  const wisconsinLeafOff = L.esri.imageMapLayer({
+  btn.innerText =
+    "Stop Recording";
 
-    url:
-      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer',
-
-    attribution:
-      'Imagery © Wisconsin DNR / WROC'
-
-  });
-
-
-  // ==========================================================
-  // BASEMAP 3
-  //
-  // WISCONSIN DNR LEAF-ON
-  //
-  // Current DNR statewide leaf-on service.
-  //
-  // 2022 USDA NAIP
-  // 0.6-meter pixel resolution
-  // ==========================================================
-
-  const wisconsinLeafOn = L.esri.imageMapLayer({
-
-    url:
-      'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer',
-
-    attribution:
-      'Imagery © Wisconsin DNR / USDA NAIP'
-
-  });
-
-
-  // ==========================================================
-  // BASEMAP 4
-  //
-  // ESRI WORLD IMAGERY
-  //
-  // Your original basemap
-  // ==========================================================
-
-  const esriImagery = L.tileLayer(
-
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-
-    {
-      attribution: 'Tiles © Esri',
-      maxZoom: 19
-    }
-
+  btn.classList.add(
+    "recording"
   );
+}
+function stopTrailRecording() {
 
+  if (
+    activeTrailPoints.length > 1
+  ) {
 
-  // ==========================================================
-  // DEFAULT BASEMAP
-  //
-  // Start with the high-resolution 2025
-  // Waushara County imagery.
-  // ==========================================================
+    savedTrails.push({
 
-  waushara2025.addTo(map);
+      date:
+        new Date()
+          .toLocaleString(),
 
-
-  // ==========================================================
-  // STYLE DEFINITIONS
-  // ==========================================================
-
-  const trailStyle = {
-
-    color: "#a3783e",
-    weight: 3,
-    opacity: 1
-
-  };
-
-
-  const contoursWaterStyle = {
-
-    color: "#5891a4",
-
-    weight: 1,
-
-    opacity: 1,
-
-    fillColor: "#4e9be8",
-
-    fillOpacity: 0.4
-
-  };
-
-
-  const contours1100Style = {
-
-    color: "#8f8f8f",
-
-    weight: 1,
-
-    opacity: 1
-
-  };
-
-
-  const contours3Style = {
-
-    color: "#8f8f8f",
-
-    weight: 0.75,
-
-    opacity: 0.9
-
-  };
-
-
-  const standStyle = {
-
-    radius: 5,
-
-    fillColor: "yellow",
-
-    color: "black",
-
-    weight: 1,
-
-    fillOpacity: 0.9
-
-  };
-
-
-  const parcelsStyle = {
-
-    color: "red",
-
-    weight: 0.7,
-
-    opacity: 0.8,
-
-    fillOpacity: 0
-
-  };
-
-
-  // ==========================================================
-  // TRAILS
-  // ==========================================================
-
-  const trailsLayer = L.layerGroup().addTo(map);
-
-  fetch('Trails.geojson')
-
-    .then(r => r.json())
-
-    .then(d =>
-
-      L.geoJSON(d, {
-
-        style: trailStyle
-
-      }).addTo(trailsLayer)
-
-    );
-
-
-  // ==========================================================
-  // CONTOURS & WATER
-  // ==========================================================
-
-  const contoursWaterLayer = L.layerGroup().addTo(map);
-
-  fetch('contourswater.geojson')
-
-    .then(r => r.json())
-
-    .then(d =>
-
-      L.geoJSON(d, {
-
-        style: contoursWaterStyle
-
-      }).addTo(contoursWaterLayer)
-
-    );
-
-
-  // ==========================================================
-  // 1100' CONTOURS
-  // ==========================================================
-
-  const contours1100Layer = L.layerGroup().addTo(map);
-
-  fetch('contours1100.geojson')
-
-    .then(r => r.json())
-
-    .then(d =>
-
-      L.geoJSON(d, {
-
-        style: contours1100Style
-
-      }).addTo(contours1100Layer)
-
-    );
-
-
-  // ==========================================================
-  // 3' CONTOURS
-  // ==========================================================
-
-  const contours3Layer = L.layerGroup().addTo(map);
-
-  fetch('contours3.geojson')
-
-    .then(r => r.json())
-
-    .then(d =>
-
-      L.geoJSON(d, {
-
-        style: contours3Style
-
-      }).addTo(contours3Layer)
-
-    );
-
-
-  // ==========================================================
-  // STANDS
-  // ==========================================================
-
-  const standsLayer = L.layerGroup().addTo(map);
-
-  fetch('Stands.geojson')
-
-    .then(r => r.json())
-
-    .then(data => {
-
-      L.geoJSON(data, {
-
-        pointToLayer: (feature, latlng) => {
-
-          const marker =
-            L.circleMarker(latlng, standStyle);
-
-          const label =
-            feature.properties.Name;
-
-          if (label) {
-
-            marker.bindTooltip(label, {
-
-              permanent: true,
-
-              direction: "top",
-
-              offset: [0, -8],
-
-              className: "stand-label"
-
-            });
-
-          }
-
-          return marker;
-
-        }
-
-      }).addTo(standsLayer);
+      points:
+        activeTrailPoints
 
     });
 
+    saveTrails();
 
-  // ==========================================================
-  // PARCELS
-  // ==========================================================
+    redrawTrails();
+  }
 
-  const parcelsLayer = L.layerGroup().addTo(map);
+  if (liveTrail) {
 
-  fetch('Parcels.geojson')
-
-    .then(r => r.json())
-
-    .then(d =>
-
-      L.geoJSON(d, {
-
-        style: parcelsStyle
-
-      }).addTo(parcelsLayer)
-
+    map.removeLayer(
+      liveTrail
     );
 
+    liveTrail = null;
+  }
 
-  // ==========================================================
-  // LAYER CONTROL
-  // ==========================================================
+  activeTrailPoints = [];
 
-  L.control.layers(
+  isRecordingTrail = false;
 
-    {
+  const btn =
+    document.getElementById(
+      "record-trail-btn"
+    );
 
-      "2025 Waushara County WROC — Leaf-Off":
-        waushara2025,
+  btn.innerText =
+    "Record Trail";
 
-      "Wisconsin DNR — Latest Leaf-Off":
-        wisconsinLeafOff,
+  btn.classList.remove(
+    "recording"
+  );
+}
+function saveScoutingPins(){
 
-      "Wisconsin DNR — Leaf-On":
-        wisconsinLeafOn,
+    localStorage.setItem(
+        'scoutingPins',
+        JSON.stringify(scoutingPins)
+    );
+  }
 
-      "ESRI World Imagery":
-        esriImagery
+function loadScoutingPins(){
 
-    },
+ const s =
+        localStorage.getItem(
+            'scoutingPins'
+        );
 
-    {
+    if(!s) return;
 
-      "Trails":
-        trailsLayer,
+    scoutingPins =
+        JSON.parse(s);
 
-      "Contours & Water":
-        contoursWaterLayer,
+    scoutingPins.forEach(pin => {
 
-      "1100' Contours":
-        contours1100Layer,
+        if(!pin.id)
+            pin.id =
+                Date.now() +
+                Math.random();
 
-      "3' Contours":
-        contours3Layer,
+        if(pin.type === undefined)
+            pin.type = "";
 
-      "Stands":
-        standsLayer,
+        if(pin.notes === undefined)
+            pin.notes = "";
 
-      "Parcels":
-        parcelsLayer
+        if(!pin.created)
+            pin.created =
+                new Date()
+                .toISOString();
 
-    },
+        createScoutingPin(
+            pin,
+            false
+        );
+    });
+}
+function createScoutingPin(
+    pin,
+    save=true
+){
 
-    {
-      collapsed: true
+    const marker =
+        L.circleMarker(
+            [pin.lat,pin.lng],
+            {
+                radius:8,
+                fillColor:
+                    getPinColor(
+                        pin.type
+                    ),
+                color:"#fff",
+                weight:2,
+                fillOpacity:.9
+            }
+        );
+
+    marker.on(
+        "click",
+        () => openPinEditor(
+            pin,
+            marker
+        )
+    );
+
+    scoutingPinsLayer.addLayer(
+        marker
+    );
+
+    if(save){
+
+        scoutingPins.push(pin);
+
+        saveScoutingPins();
+
     }
+}
+window.deleteScoutingPin =
+function(id){
 
-  ).addTo(map);
+    if(
+        !confirm(
+            "Delete this scouting point?"
+        )
+    ){
+        return;
+    }
+  map.closePopup();
+    scoutingPins =
+        scoutingPins.filter(
+            p => p.id !== id
+        );
 
+    scoutingPinsLayer.clearLayers();
 
-</script>
+    scoutingPins.forEach(
+        pin =>
+        createScoutingPin(
+            pin,
+            false
+        )
+    );
 
-</body>
-</html>
+    saveScoutingPins();
+};
+function startGPS(){map.off('locationfound',onLocationFound); map.off('locationerror',onLocationError); map.locate({watch:true,enableHighAccuracy:true}); map.on('locationfound',onLocationFound); map.on('locationerror',onLocationError);}
+function stopGPS(){map.stopLocate(); if(userMarker){map.removeLayer(userMarker); userMarker=null;} initialGPSCentered=false;}
+function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setView(ll,17); initialGPSCentered=true;} if(!userMarker){userMarker=L.circleMarker(ll,{radius:7,fillColor:'lime',color:'#fff',weight:2,fillOpacity:.95}).addTo(gpsLayer);} else userMarker.setLatLng(ll); 
+ if (
+  isRecordingTrail &&
+  shouldAddTrailPoint(ll)
+) {
+
+  activeTrailPoints.push([
+    ll.lat,
+    ll.lng
+  ]);
+
+  if (liveTrail) {
+
+    liveTrail.addLatLng(
+      ll
+    );
+  }
+} 
+}                            
+function onLocationError(e){alert('GPS error: '+e.message);} 
+
+function getPinColor(type){
+
+    switch(type){
+
+        case "Rub":
+            return "#ff8800";
+
+        case "Scrape":
+            return "#ff0000";
+
+        case "Stand":
+            return "#00aa00";
+
+        case "Camera":
+            return "#0066ff";
+
+        case "Bedding Area":
+    return "#6a0dad";
+
+        case "Food Source":
+            return "#8b4513";
+
+        default:
+            return "#cc00ff";
+    }
+}
+
+function openPinEditor(
+    pin,
+    marker
+){
+
+    let options =
+        SCOUT_TYPES.map(
+            t =>
+            `<option value="${t}"
+             ${pin.type===t?"selected":""}>
+             ${t}
+             </option>`
+        ).join("");
+
+    const html = `
+        <div>
+
+            <b>Scouting Point</b>
+
+            <br><br>
+
+            <b>Created:</b><br>
+            ${new Date(
+                pin.created
+            ).toLocaleString()}
+
+            <br><br>
+
+            <b>Type:</b><br>
+
+            <select
+                id="type-${pin.id}"
+            >
+                ${options}
+            </select>
+
+            <br><br>
+
+            <b>Notes:</b><br>
+
+            <textarea
+                id="notes-${pin.id}"
+                rows="4"
+                style="width:100%;"
+            >${pin.notes}</textarea>
+
+            <br><br>
+
+            <button
+                onclick="
+                deleteScoutingPin(
+                    ${pin.id}
+                )">
+                Delete Point
+            </button>
+
+        </div>
+    `;
+
+    marker.unbindPopup();
+
+marker.bindPopup(html);
+
+marker.openPopup();
+
+    marker.once(
+        "popupopen",
+        () => {
+
+            const typeBox =
+                document.getElementById(
+                    `type-${pin.id}`
+                );
+
+            const notesBox =
+                document.getElementById(
+                    `notes-${pin.id}`
+                );
+
+            typeBox.onchange =
+                () => {
+
+                    pin.type =
+                        typeBox.value;
+
+                    marker.setStyle({
+                        fillColor:
+                            getPinColor(
+                                pin.type
+                            )
+                    });
+
+                    saveScoutingPins();
+                };
+
+            notesBox.oninput = () => {
+
+    pin.notes = notesBox.value;
+
+    saveScoutingPins();
+
+};
+        }
+    );
+}
+  
+const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
+const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Mode':scoutingModeLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
+loadScoutingPins(); loadTrails();
+map.on(
+    "click",
+    e => {
+
+        if(!scoutingModeEnabled)
+            return;
+
+        createScoutingPin(
+            {
+                id: Date.now(),
+
+                lat: e.latlng.lat,
+
+                lng: e.latlng.lng,
+
+                type: "",
+
+                notes: "",
+
+                created:
+                    new Date()
+                    .toISOString()
+            }
+        );
+    }
+);
+L.control.layers(baseMaps,overlays,{collapsed:true}).addTo(map);
+map.on('overlayadd',e=>{if(e.name==='Show My Location')startGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=true; document.getElementById('scouting-banner').style.display='block';}});
+map.on('overlayremove',e=>{if(e.name==='Show My Location')stopGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=false; document.getElementById('scouting-banner').style.display='none';}});
+document.getElementById('record-trail-btn').addEventListener('click',()=>{if(isRecordingTrail)stopTrailRecording(); else startTrailRecording();});
+</script></body></html>
