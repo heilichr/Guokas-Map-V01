@@ -471,25 +471,50 @@ function openPinEditor(
         </div>
     `;
 
-    marker.unbindPopup();
+   marker.unbindPopup();
 
 marker.bindPopup(html);
 
 marker.openPopup();
 
-    marker.on(
-    "popupopen",
-    () => {
+setTimeout(() => {
 
-            const typeBox =
-                document.getElementById(
-                    `type-${pin.id}`
-                );
+    const typeBox =
+        document.getElementById(
+            `type-${pin.id}`
+        );
 
-            const notesBox =
-                document.getElementById(
-                    `notes-${pin.id}`
-                );
+    const notesBox =
+        document.getElementById(
+            `notes-${pin.id}`
+        );
+
+    if(typeBox){
+
+        typeBox.onchange = () => {
+
+            pin.type = typeBox.value;
+
+            marker.setStyle({
+                fillColor:
+                    getPinColor(pin.type)
+            });
+
+            saveScoutingPins();
+        };
+    }
+
+    if(notesBox){
+
+        notesBox.oninput = () => {
+
+            pin.notes = notesBox.value;
+
+            saveScoutingPins();
+        };
+    }
+
+},50);
 
             typeBox.onchange = () => {
 
