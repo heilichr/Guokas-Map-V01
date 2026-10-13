@@ -13,9 +13,9 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 .stand-label{font-size:12px;font-weight:bold;color:black;background:rgba(255,255,255,.75);border:1px solid #333;border-radius:3px;padding:1px 4px;white-space:nowrap;}
 #scouting-banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(128,0,128,.85);color:white;font-weight:bold;font-size:14px;padding:6px 12px;border-radius:4px;z-index:1000;display:none;}
 #record-trail-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;padding:12px 20px;font-size:16px;font-weight:bold;border:none;border-radius:8px;background:#2e8b57;color:white;cursor:pointer;}
-//
+
 #record-trail-btn.recording{background:#cc0000;}
-//
+
 #add-pin-btn{
     position:absolute;
     bottom:70px;
@@ -35,19 +35,19 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 #add-pin-btn.active{
     background:#800080;
 }
-//start    
+    
     
 .leaflet-popup-content textarea,
 .leaflet-popup-content select,
 .leaflet-popup-content input{
     font-size:16px;
 }
-//end
+
 </style>
 </head>
 <body>
 
-//start
+
 <div id="map"></div>
 
 <button id="record-trail-btn">
@@ -61,7 +61,7 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 <div id="scouting-banner">
     ADD PIN ON
 </div>
-//end    
+    
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
@@ -455,7 +455,7 @@ function getPinColor(type){
     }
 }
 
-// function openPinEditor
+
 
 function openPinEditor(
     pin,
@@ -565,7 +565,7 @@ function openPinEditor(
 
     },50);
 }
-//  end openPinEditor
+
   
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
 const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
