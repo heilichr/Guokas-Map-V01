@@ -27,13 +27,13 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
     font-weight:bold;
     border:none;
     border-radius:8px;
-    background:#666666;
+    background:#2e8b57;
     color:white;
     cursor:pointer;
 }
 
 #add-pin-btn.active{
-    background:#800080;
+    background:#cc0000;
 }
     
     
@@ -55,7 +55,7 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 </button>
 
 <button id="add-pin-btn">
-    Add Pin Off
+    Add User Pins
 </button>
 
 
@@ -624,7 +624,7 @@ document.getElementById('add-pin-btn')
   if(scoutingModeEnabled){
 
     btn.innerText =
-        'Add Pin On';
+        'Stop Adding Pins';
 
     btn.classList.add(
         'active'
@@ -636,7 +636,7 @@ document.getElementById('add-pin-btn')
 
 }else{
         btn.innerText =
-            'Add Pin Off';
+            'Add User Pins';
 
         btn.classList.remove(
             'active'
