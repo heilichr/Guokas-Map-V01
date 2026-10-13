@@ -15,18 +15,54 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 #record-trail-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;padding:12px 20px;font-size:16px;font-weight:bold;border:none;border-radius:8px;background:#2e8b57;color:white;cursor:pointer;}
 //
 #record-trail-btn.recording{background:#cc0000;}
+//
+#add-pin-btn{
+    position:absolute;
+    bottom:70px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+    padding:12px 20px;
+    font-size:16px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    background:#666666;
+    color:white;
+    cursor:pointer;
+}
+
+#add-pin-btn.active{
+    background:#800080;
+}
+//start    
+    
 .leaflet-popup-content textarea,
 .leaflet-popup-content select,
 .leaflet-popup-content input{
     font-size:16px;
 }
-//
+//end
 </style>
 </head>
 <body>
+
+//start
 <div id="map"></div>
-<button id="record-trail-btn">Record Trail</button>
-<div id="scouting-banner">SCOUTING MODE ACTIVE</div>
+
+<button id="record-trail-btn">
+    Record Trail
+</button>
+
+<button id="add-pin-btn">
+    Add Pin Off
+</button>
+
+<div id="scouting-banner">
+    ADD PIN ON
+</div>
+//end    
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/esri-leaflet@3.0.19/dist/esri-leaflet.js"></script>
 
