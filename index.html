@@ -621,17 +621,20 @@ document.getElementById('add-pin-btn')
             'add-pin-btn'
         );
 
-    if(scoutingModeEnabled){
+  if(scoutingModeEnabled){
 
-        btn.innerText =
-            'Add Pin On';
+    btn.innerText =
+        'Add Pin On';
 
-        btn.classList.add(
-            'active'
-        );
+    btn.classList.add(
+        'active'
+    );
 
-  }else{
+    if(!map.hasLayer(scoutingPinsLayer)){
+        map.addLayer(scoutingPinsLayer);
+    }
 
+}else{
         btn.innerText =
             'Add Pin Off';
 
