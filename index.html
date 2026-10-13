@@ -89,7 +89,7 @@ const parcelsLayer=L.layerGroup().addTo(map); fetch('Parcels.geojson').then(r=>r
 const gpsLayer=L.layerGroup(); 
 const recordedTrailsLayer=L.layerGroup(); let liveTrail = null;
 const scoutingPinsLayer=L.layerGroup();
-const scoutingModeLayer=L.layerGroup();
+
 let scoutingPins=[];
 let scoutingModeEnabled=false;
 let userMarker=null;
@@ -568,7 +568,7 @@ function openPinEditor(
 //  end openPinEditor
   
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
-const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Mode':scoutingModeLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
+const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
 loadScoutingPins(); loadTrails();
 map.on(
     "click",
@@ -597,7 +597,57 @@ map.on(
     }
 );
 L.control.layers(baseMaps,overlays,{collapsed:true}).addTo(map);
-map.on('overlayadd',e=>{if(e.name==='Show My Location')startGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=true; document.getElementById('scouting-banner').style.display='block';}});
-map.on('overlayremove',e=>{if(e.name==='Show My Location')stopGPS(); if(e.name==='Scouting Mode'){scoutingModeEnabled=false; document.getElementById('scouting-banner').style.display='none';}});
+
+map.on('overlayadd',e=>{
+    if(e.name==='Show My Location')startGPS();
+});
+
+map.on('overlayremove',e=>{
+    if(e.name==='Show My Location')stopGPS();
+});
+
 document.getElementById('record-trail-btn').addEventListener('click',()=>{if(isRecordingTrail)stopTrailRecording(); else startTrailRecording();});
-</script></body></html>
+
+document.getElementById('add-pin-btn')
+.addEventListener('click',()=>{
+
+    scoutingModeEnabled =
+        !scoutingModeEnabled;
+
+    const btn =
+        document.getElementById(
+            'add-pin-btn'
+        );
+
+    const banner =
+        document.getElementById(
+            'scouting-banner'
+        );
+
+    if(scoutingModeEnabled){
+
+        btn.innerText =
+            'Add Pin On';
+
+        btn.classList.add(
+            'active'
+        );
+
+        banner.style.display =
+            'block';
+
+    }else{
+
+        btn.innerText =
+            'Add Pin Off';
+
+        btn.classList.remove(
+            'active'
+        );
+
+        banner.style.display =
+            'none';
+    }
+});
+ 
+ </script></body></html>
