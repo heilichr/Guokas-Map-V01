@@ -357,13 +357,18 @@ function createScoutingPin(
             }
         );
 
-    marker.on(
-        "click",
-        () => openPinEditor(
+   marker.on(
+    "click",
+    (e) => {
+
+        L.DomEvent.stopPropagation(e);
+
+        openPinEditor(
             pin,
             marker
-        )
-    );
+        );
+    }
+);
 
     scoutingPinsLayer.addLayer(
         marker
