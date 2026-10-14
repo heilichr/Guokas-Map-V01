@@ -105,7 +105,6 @@ html,body{height:100%;margin:0;}#map{height:100%;width:100%;}
 const map=L.map('map').setView([44.18125,-89.48712],16);
 const waushara2025=L.esri.imageMapLayer({url:'https://gis.co.waushara.wi.us/arcgis/rest/services/Imagery/Waushara_Co_2025_sid/ImageServer'});
 const wisconsinLeafOff=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_Off/ImageServer'});
-const wisconsinLeafOn=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer'});
 const esriImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
 const usgsTopo = L.tileLayer(
     'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',
@@ -623,7 +622,6 @@ function openPinEditor(
 const baseMaps={
 '2025 Waushara County WROC — Leaf-Off':waushara2025,
 'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,
-'Wisconsin DNR — Leaf-On':wisconsinLeafOn,
 'ESRI World Imagery':esriImagery,
 'USGS Topographic':usgsTopo
 };
