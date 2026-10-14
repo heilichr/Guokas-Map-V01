@@ -90,11 +90,11 @@ const usgsTopo = L.tileLayer(
 waushara2025.addTo(map); waushara2025.setOpacity(1.0);
 const multiHillshade = L.esri.imageMapLayer({
     url: 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer',
-    opacity: 0.5,
+    opacity: 1.0,
     renderingRule: {
         rasterFunction: 'Hillshade Multidirectional'
     }
-});     
+});
 const trailStyle={color:'#a3783e',weight:3}; 
 const contoursWaterStyle={color:'#5891a4',weight:1,fillColor:'#4e9be8',fillOpacity:.4}; 
 const contours1100Style={color:'#8f8f8f',weight:1}; 
@@ -597,7 +597,8 @@ const baseMaps={
 '2025 Waushara County WROC — Leaf-Off':waushara2025,
 'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,
 'ESRI World Imagery':esriImagery,
-'USGS Topographic':usgsTopo
+'USGS Topographic':usgsTopo,
+'USGS Terrain Relief':multiHillshade
 };
 const overlays={
 'Show My Location':gpsLayer,
