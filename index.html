@@ -82,6 +82,13 @@ const wisconsinLeafOff=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_
 const wisconsinLeafOn=L.esri.imageMapLayer({url:'https://dnrmaps.wi.gov/arcgis_image/rest/services/DW_Imagery/EN_Image_Basemap_Latest_Leaf_On/ImageServer'});
 const esriImagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
 waushara2025.addTo(map);
+const multiHillshade = L.esri.imageMapLayer({
+    url: 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer',
+    opacity: 0.5,
+    renderingRule: {
+        rasterFunction: 'Hillshade Multidirectional'
+    }
+});     
 const trailStyle={color:'#a3783e',weight:3}; 
 const contoursWaterStyle={color:'#5891a4',weight:1,fillColor:'#4e9be8',fillOpacity:.4}; 
 const contours1100Style={color:'#8f8f8f',weight:1}; 
@@ -581,7 +588,19 @@ function openPinEditor(
 
   
 const baseMaps={'2025 Waushara County WROC — Leaf-Off':waushara2025,'Wisconsin DNR — Latest Leaf-Off':wisconsinLeafOff,'Wisconsin DNR — Leaf-On':wisconsinLeafOn,'ESRI World Imagery':esriImagery};
-const overlays={'Show My Location':gpsLayer,'Recorded Trails':recordedTrailsLayer,'Scouting Pins':scoutingPinsLayer,'Trails':trailsLayer,'Contours & Water':contoursWaterLayer,"1100' Contours":contours1100Layer,"3' Contours":contours3Layer,'Stands':standsLayer,'Parcels':parcelsLayer};
+const overlays={
+'Show My Location':gpsLayer,
+'Recorded Trails':recordedTrailsLayer,
+'Scouting Pins':scoutingPinsLayer,
+'USGS Multi-Directional Hillshade':multiHillshade,
+'Trails':trailsLayer,
+'Contours & Water':contoursWaterLayer,
+"1100' Contours":contours1100Layer,
+"3' Contours":contours3Layer,
+'Stands':standsLayer,
+'Parcels':parcelsLayer
+};
+
 loadScoutingPins(); loadTrails();
 map.on(
     "click",
