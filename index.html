@@ -675,6 +675,16 @@ hillshadeSlider.addEventListener(
         );
     }
 );     
+
+map.on('moveend', function(){
+
+    if(map.hasLayer(multiHillshade)){
+
+        multiHillshade.remove();
+
+        multiHillshade.addTo(map);
+    }
+});
      
 map.on('overlayadd',e=>{
 
