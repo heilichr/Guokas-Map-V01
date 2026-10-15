@@ -470,14 +470,18 @@ function openMeasureMenu(){
     closeMeasureMenu();
 
     measureMenu =
-        L.popup({
-            closeButton:false,
-            autoClose:true,
-            closeOnClick:true
-        })
-        .setLatLng(
-            map.getBounds().getNorthEast()
-        )
+    L.popup({
+        closeButton:false,
+        autoClose:true,
+        closeOnClick:true,
+        autoPan:false
+    })
+       .setLatLng(
+    map.containerPointToLatLng(
+        [map.getSize().x - 120, 100]
+    )
+)
+
         .setContent(
             `
             <b>Measurement Tools</b>
