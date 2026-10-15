@@ -743,20 +743,27 @@ const MeasureControl = L.Control.extend({
 
         setTimeout(() => {
 
-            document
-            .getElementById(
-                'measure-distance-btn'
-            )
-            ?.addEventListener(
-                'click',
-                () => {
+           document
+.getElementById(
+    'measure-distance-btn'
+)
+?.addEventListener(
+    'click',
+    () => {
 
-                    alert(
-                        'Measure Distance selected'
-                    );
+        measuringDistance = true;
 
-                }
-            );
+        measurePoints = [];
+
+        menu.style.display =
+            'none';
+
+        alert(
+            'Tap two points on the map to measure distance.'
+        );
+
+    }
+);
 
             document
             .getElementById(
