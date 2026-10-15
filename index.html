@@ -118,7 +118,7 @@ let initialGPSCentered=false;
 let isRecordingTrail=false;
 let activeTrailPoints=[];
 let savedTrails=[];
-
+let measureMenu;
 const MIN_TRAIL_DISTANCE = 5;
 const TURN_THRESHOLD = 15; // degrees
 
@@ -454,6 +454,94 @@ function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setVi
 }                            
 function onLocationError(e){alert('GPS error: '+e.message);} 
 
+function toggleMeasureMenu(){
+
+    if(measureMenuVisible){
+
+        closeMeasureMenu();
+        return;
+    }
+
+    openMeasureMenu();
+}
+
+function openMeasureMenu(){
+
+    closeMeasureMenu();
+
+    measureMenu =
+        L.popup({
+            closeButton:false,
+            autoClose:true,
+            closeOnClick:true
+        })
+        .setLatLng(
+            map.getBounds().getNorthEast()
+        )
+        .setContent(
+            `
+            <b>Measurement Tools</b>
+            <hr>
+            <button id="measure-distance-btn">
+                Measure Distance
+            </button>
+
+            <br><br>
+
+            <button id="clear-measurements-btn">
+                Clear Measurements
+            </button>
+            `
+        )
+        .openOn(map);
+
+    measureMenuVisible = true;
+
+    setTimeout(() => {
+
+        const measureBtn =
+            document.getElementById(
+                'measure-distance-btn'
+            );
+
+        const clearBtn =
+            document.getElementById(
+                'clear-measurements-btn'
+            );
+
+        if(measureBtn){
+
+            measureBtn.onclick =
+                () => alert(
+                    'Measure Distance selected'
+                );
+        }
+
+        if(clearBtn){
+
+            clearBtn.onclick =
+                () => alert(
+                    'Clear Measurements selected'
+                );
+        }
+
+    },50);
+}
+
+function closeMeasureMenu(){
+
+    if(measureMenu){
+
+        map.closePopup(
+            measureMenu
+        );
+
+        measureMenu = null;
+    }
+
+    measureMenuVisible = false;
+}
+     
 function getPinColor(type){
 
     switch(type){
@@ -640,9 +728,48 @@ map.on(
     }
 );
 
-    // Measurement Tools Control
+// Measurement Tools Control
 
-     
+let measureMenuVisible = false;
+
+const MeasureControl = L.Control.extend({
+
+    options: {
+        position: 'topright'
+    },
+
+    onAdd: function () {
+
+        const div = L.DomUtil.create(
+            'div',
+            'leaflet-bar leaflet-control'
+        );
+
+        div.innerHTML = '📏';
+        div.title = 'Measurement Tools';
+
+        div.style.width = '34px';
+        div.style.height = '34px';
+        div.style.lineHeight = '34px';
+        div.style.textAlign = 'center';
+        div.style.backgroundColor = 'white';
+        div.style.cursor = 'pointer';
+        div.style.fontSize = '18px';
+
+        L.DomEvent.on(div,'click',function(e){
+
+            L.DomEvent.stopPropagation(e);
+
+            toggleMeasureMenu();
+
+        });
+
+        return div;
+    }
+});
+
+map.addControl(new MeasureControl());
+
 L.control.layers(baseMaps,overlays,{collapsed:true}).addTo(map);
 
 
