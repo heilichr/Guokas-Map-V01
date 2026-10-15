@@ -800,17 +800,20 @@ const MeasureControl = L.Control.extend({
     'click',
     () => {
 
-        measuringDistance = true;
+       menu.style.display =
+    'none';
 
-        measurePoints = [];
+setTimeout(() => {
 
-        menu.style.display =
-            'none';
+    measuringDistance = true;
 
-        alert(
-            'Tap two points on the map to measure distance.'
-        );
+    measurePoints = [];
 
+    alert(
+        'Tap two points on the map to measure distance.'
+    );
+
+}, 100);
     }
 );
 
