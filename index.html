@@ -470,23 +470,39 @@ function handleMeasurementClick(
         latlng
     );
 
-    alert(
-        'Measurement Point ' +
-        measurePoints.length +
-        ' added'
+    const marker =
+        L.circleMarker(
+            latlng,
+            {
+                radius: 6,
+                fillColor: 'cyan',
+                color: 'white',
+                weight: 2,
+                fillOpacity: 1
+            }
+        ).addTo(map);
+
+    measureMarkers.push(
+        marker
     );
 
     if(
-        measurePoints.length >= 2
+        measurePoints.length === 2
     ){
 
-        measuringDistance = false;
+        measureLine =
+            L.polyline(
+                measurePoints,
+                {
+                    color:'cyan',
+                    weight:3
+                }
+            ).addTo(map);
 
-        alert(
-            'Two points selected.'
-        );
+        measuringDistance = false;
     }
 }
+
      
 function getPinColor(type){
 
