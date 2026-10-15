@@ -464,7 +464,31 @@ function onLocationError(e){alert('GPS error: '+e.message);}
 
 function handleMeasurementClick(
     latlng
-){
+)
+
+function clearMeasurements(){
+
+    measureMarkers.forEach(
+        marker => map.removeLayer(marker)
+    );
+
+    measureMarkers = [];
+
+    if(measureLine){
+
+        map.removeLayer(
+            measureLine
+        );
+
+        measureLine = null;
+    }
+
+    measurePoints = [];
+
+    measuringDistance = false;
+}
+    
+{
 
     measurePoints.push(
         latlng
@@ -817,20 +841,21 @@ setTimeout(() => {
     }
 );
 
-            document
-            .getElementById(
-                'clear-measurements-btn'
-            )
-            ?.addEventListener(
-                'click',
-                () => {
+           document
+.getElementById(
+    'clear-measurements-btn'
+)
+?.addEventListener(
+    'click',
+    () => {
 
-                    alert(
-                        'Clear Measurements selected'
-                    );
+        clearMeasurements();
 
-                }
-            );
+        menu.style.display =
+            'none';
+
+    }
+);
 
         },100);
 
