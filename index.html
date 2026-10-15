@@ -126,7 +126,8 @@ let measurePoints=[];
 let measureMarkers=[];
 
 let measureLine=null;
-
+let measureDistancePopup=null;
+     
 const MIN_TRAIL_DISTANCE = 5;
 const TURN_THRESHOLD = 15; // degrees
 
@@ -486,21 +487,79 @@ function handleMeasurementClick(
         marker
     );
 
-    if(
-        measurePoints.length === 2
-    ){
+   if(
+    measurePoints.length === 2
+){
 
-        measureLine =
-            L.polyline(
-                measurePoints,
-                {
-                    color:'cyan',
-                    weight:3
-                }
-            ).addTo(map);
+    measureLine =
+        L.polyline(
+            measurePoints,
+            {
+                color:'cyan',
+                weight:3
+            }
+        ).addTo(map);
 
-        measuringDistance = false;
+    const distanceMeters =
+        measurePoints[0]
+        .distanceTo(
+            measurePoints[1]
+        );
+
+    let distanceText;
+
+    const distanceYards =
+        distanceMeters *
+        1.09361;
+
+    if(distanceYards < 1760){
+
+        distanceText =
+            Math.round(
+                distanceYards
+            ) +
+            ' yards';
+
+    }else{
+
+        distanceText =
+            (
+                distanceMeters /
+                1609.344
+            ).toFixed(2) +
+            ' miles';
     }
+
+    const midpoint =
+        L.latLng(
+            (
+                measurePoints[0].lat +
+                measurePoints[1].lat
+            ) / 2,
+
+            (
+                measurePoints[0].lng +
+                measurePoints[1].lng
+            ) / 2
+        );
+
+    measureDistancePopup =
+        L.popup({
+            closeButton:false,
+            autoClose:false
+        })
+        .setLatLng(
+            midpoint
+        )
+        .setContent(
+            '<b>' +
+            distanceText +
+            '</b>'
+        )
+        .openOn(map);
+
+    measuringDistance = false;
+}
 }
 
 function clearMeasurements(){
@@ -520,9 +579,19 @@ function clearMeasurements(){
         measureLine = null;
     }
 
-    measurePoints = [];
+   if(measureDistancePopup){
 
-    measuringDistance = false;
+    map.closePopup(
+        measureDistancePopup
+    );
+
+    measureDistancePopup =
+        null;
+}
+
+measurePoints = [];
+
+measuringDistance = false;
 }
     
 
