@@ -464,7 +464,44 @@ function onLocationError(e){alert('GPS error: '+e.message);}
 
 function handleMeasurementClick(
     latlng
-)
+){
+
+    measurePoints.push(
+        latlng
+    );
+
+    const marker =
+        L.circleMarker(
+            latlng,
+            {
+                radius: 6,
+                fillColor: 'cyan',
+                color: 'white',
+                weight: 2,
+                fillOpacity: 1
+            }
+        ).addTo(map);
+
+    measureMarkers.push(
+        marker
+    );
+
+    if(
+        measurePoints.length === 2
+    ){
+
+        measureLine =
+            L.polyline(
+                measurePoints,
+                {
+                    color:'cyan',
+                    weight:3
+                }
+            ).addTo(map);
+
+        measuringDistance = false;
+    }
+}
 
 function clearMeasurements(){
 
