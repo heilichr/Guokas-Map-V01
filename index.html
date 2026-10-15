@@ -118,7 +118,7 @@ let initialGPSCentered=false;
 let isRecordingTrail=false;
 let activeTrailPoints=[];
 let savedTrails=[];
-let measureMenu;
+
 const MIN_TRAIL_DISTANCE = 5;
 const TURN_THRESHOLD = 15; // degrees
 
@@ -454,98 +454,7 @@ function onLocationFound(e){const ll=e.latlng; if(!initialGPSCentered){map.setVi
 }                            
 function onLocationError(e){alert('GPS error: '+e.message);} 
 
-function toggleMeasureMenu(){
 
-    if(measureMenuVisible){
-
-        closeMeasureMenu();
-        return;
-    }
-
-    openMeasureMenu();
-}
-
-function openMeasureMenu(){
-
-    closeMeasureMenu();
-
-    measureMenu =
-    L.popup({
-        closeButton:false,
-        autoClose:true,
-        closeOnClick:true,
-        autoPan:false
-    })
-       .setLatLng(
-    map.containerPointToLatLng(
-        [map.getSize().x - 120, 100]
-    )
-)
-
-        .setContent(
-            `
-            <b>Measurement Tools</b>
-            <hr>
-            <button id="measure-distance-btn">
-                Measure Distance
-            </button>
-
-            <br><br>
-
-            <button id="clear-measurements-btn">
-                Clear Measurements
-            </button>
-            `
-        )
-        .openOn(map);
-
-    measureMenuVisible = true;
-
-    setTimeout(() => {
-
-        const measureBtn =
-            document.getElementById(
-                'measure-distance-btn'
-            );
-
-        const clearBtn =
-            document.getElementById(
-                'clear-measurements-btn'
-            );
-
-        if(measureBtn){
-
-            measureBtn.onclick =
-                () => alert(
-                    'Measure Distance selected'
-                );
-        }
-
-        if(clearBtn){
-
-            clearBtn.onclick =
-                () => alert(
-                    'Clear Measurements selected'
-                );
-        }
-
-    },50);
-}
-
-function closeMeasureMenu(){
-
-    if(measureMenu){
-
-        map.closePopup(
-            measureMenu
-        );
-
-        measureMenu = null;
-    }
-
-    measureMenuVisible = false;
-}
-     
 function getPinColor(type){
 
     switch(type){
@@ -744,36 +653,127 @@ const MeasureControl = L.Control.extend({
 
     onAdd: function () {
 
-        const div = L.DomUtil.create(
-            'div',
-            'leaflet-bar leaflet-control'
+        const container =
+            L.DomUtil.create(
+                'div'
+            );
+
+        const button =
+            L.DomUtil.create(
+                'div',
+                'leaflet-bar leaflet-control',
+                container
+            );
+
+        button.innerHTML = '📏';
+        button.title = 'Measurement Tools';
+
+        button.style.width = '34px';
+        button.style.height = '34px';
+        button.style.lineHeight = '34px';
+        button.style.textAlign = 'center';
+        button.style.backgroundColor = 'white';
+        button.style.cursor = 'pointer';
+        button.style.fontSize = '18px';
+
+        const menu =
+            L.DomUtil.create(
+                'div',
+                '',
+                container
+            );
+
+        menu.style.display = 'none';
+        menu.style.background = 'white';
+        menu.style.border = '1px solid #999';
+        menu.style.padding = '8px';
+        menu.style.minWidth = '160px';
+        menu.style.boxShadow =
+            '0 2px 6px rgba(0,0,0,0.3)';
+
+        menu.innerHTML = `
+            <b>Measurement Tools</b>
+            <hr>
+
+            <button
+                id="measure-distance-btn"
+                style="width:100%;"
+            >
+                Measure Distance
+            </button>
+
+            <br><br>
+
+            <button
+                id="clear-measurements-btn"
+                style="width:100%;"
+            >
+                Clear Measurements
+            </button>
+        `;
+
+        L.DomEvent.on(
+            button,
+            'click',
+            function(e){
+
+                L.DomEvent.stop(e);
+
+                if(
+                    menu.style.display ===
+                    'none'
+                ){
+                    menu.style.display =
+                        'block';
+                }
+                else{
+                    menu.style.display =
+                        'none';
+                }
+            }
         );
 
-        div.innerHTML = '📏';
-        div.title = 'Measurement Tools';
+        setTimeout(() => {
 
-        div.style.width = '34px';
-        div.style.height = '34px';
-        div.style.lineHeight = '34px';
-        div.style.textAlign = 'center';
-        div.style.backgroundColor = 'white';
-        div.style.cursor = 'pointer';
-        div.style.fontSize = '18px';
+            document
+            .getElementById(
+                'measure-distance-btn'
+            )
+            ?.addEventListener(
+                'click',
+                () => {
 
-        L.DomEvent.on(div,'click',function(e){
+                    alert(
+                        'Measure Distance selected'
+                    );
 
-            L.DomEvent.stopPropagation(e);
+                }
+            );
 
-            toggleMeasureMenu();
+            document
+            .getElementById(
+                'clear-measurements-btn'
+            )
+            ?.addEventListener(
+                'click',
+                () => {
 
-        });
+                    alert(
+                        'Clear Measurements selected'
+                    );
 
-        return div;
+                }
+            );
+
+        },100);
+
+        return container;
     }
 });
 
-map.addControl(new MeasureControl());
-
+map.addControl(
+    new MeasureControl()
+);
 L.control.layers(baseMaps,overlays,{collapsed:true}).addTo(map);
 
 
