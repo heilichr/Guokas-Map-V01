@@ -525,44 +525,6 @@ function clearMeasurements(){
     measuringDistance = false;
 }
     
-{
-
-    measurePoints.push(
-        latlng
-    );
-
-    const marker =
-        L.circleMarker(
-            latlng,
-            {
-                radius: 6,
-                fillColor: 'cyan',
-                color: 'white',
-                weight: 2,
-                fillOpacity: 1
-            }
-        ).addTo(map);
-
-    measureMarkers.push(
-        marker
-    );
-
-    if(
-        measurePoints.length === 2
-    ){
-
-        measureLine =
-            L.polyline(
-                measurePoints,
-                {
-                    color:'cyan',
-                    weight:3
-                }
-            ).addTo(map);
-
-        measuringDistance = false;
-    }
-}
 
      
 function getPinColor(type){
