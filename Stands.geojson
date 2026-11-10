@@ -21,6 +21,6 @@
 {"type":"Feature","properties":{"id":null,"Name":"Ladder","description":null,"timestamp":null,"begin":null,"end":null,"altitudeMode":null,"tessellate":null,"extrude":null,"visibility":null,"drawOrder":null,"icon":null},"geometry":{"type":"Point","coordinates":[-89.487563633228774,44.178684721237531,0.0]}},
 {"type":"Feature","properties":{"id":null,"Name":"Ladder","description":null,"timestamp":null,"begin":null,"end":null,"altitudeMode":null,"tessellate":null,"extrude":null,"visibility":null,"drawOrder":null,"icon":null},"geometry":{"type":"Point","coordinates":[-89.487807933428641,44.182029702627553,0.0]}},
 {"type":"Feature","properties":{"id":null,"Name":"Jim Tower","description":null,"timestamp":null,"begin":null,"end":null,"altitudeMode":null,"tessellate":null,"extrude":null,"visibility":null,"drawOrder":null,"icon":null},"geometry":{"type":"Point","coordinates":[-89.480293355838867,44.175616048242475,0.0]}},
-{"type":"Feature","properties":{"id":null,"Name":"Tavis Ladder","description":null,"timestamp":null,"begin":null,"end":null,"altitudeMode":null,"tessellate":null,"extrude":null,"visibility":null,"drawOrder":null,"icon":null},"geometry":{"type":"Point","coordinates":[-89.479957652678152,44.178199040974469,0.0]}}
+{"type":"Feature","properties":{"id":null,"Name":"Travis Ladder","description":null,"timestamp":null,"begin":null,"end":null,"altitudeMode":null,"tessellate":null,"extrude":null,"visibility":null,"drawOrder":null,"icon":null},"geometry":{"type":"Point","coordinates":[-89.479957652678152,44.178199040974469,0.0]}}
 ]
 }
